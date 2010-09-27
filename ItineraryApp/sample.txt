@@ -1,0 +1,3 @@
+Madison:2:Chicago:3:Iowa City:2:Minneapolis:5:Rockford:1
+Milwaukee:4:Minneapolis:1:Fargo:3
+Madison:4:Rockford:1
