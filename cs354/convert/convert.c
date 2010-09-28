@@ -54,12 +54,10 @@ int parseHex(char hex[]) {
       else {
 	i = hex[j] - 'a' + 10;
       }
-      printf("i is %d\n", i);
       total = total + ( i * powerOf(16, offset));
-      printf ("%i", powerOf(16, offset));
       offset++;
-      printf("Total is %d\n", total);
     }
+  return total;
     
 }
 int powerOf(int a, int b) {
@@ -80,7 +78,14 @@ int powerOf(int a, int b) {
 }
 
 void printOutput(int array[], char *copyOfArgv[], int numOfInts) {
-  
+  int i;
+  for ( i = 1; i < numOfInts; i++ ) {
+    printf("%s\n", *copyOfArgv[i]);
+    printf("Decimal: ");
+    printInt(array[i - 1], 10);
+    printf("Binary: ");
+    printInt(array[i - 1], 2);
+  }
 }
 
 /* This function prints an integer (the first parameter) to standard output, 
@@ -96,6 +101,10 @@ void printInt(int intToPrint, int radix) {
   int total = 0;
   int i;
   int temp;
+  /* initialize with 0's, to cut out leading 0's and garbage */
+  for ( i = 0; i < arraySize; i++ ) {
+    intArray[i] = 0; 
+  }
   for ( i = 1; i < arraySize; i++ ) {
     intArray[arraySize - i] = intToPrint % radix;
     temp = intToPrint / radix;
@@ -107,11 +116,19 @@ void printInt(int intToPrint, int radix) {
     }
   }
   int j;
+  int leadingZeroes = 0;
   for ( j = 0; j < arraySize; j++) {
-    printf("%d ", intArray[j]); 
+    if ( leadingZeroes == 0 ) {
+      if ( intArray[j] != 0 ) {
+	leadingZeroes = 1;
+      }
+    }
+    if ( leadingZeroes == 1) {
+      printf("%d", intArray[j]); 
+    }
   }
   printf("\n");
-  /*need to initialize as all zeros, then kill off leading zeroes, don't start printing until answer is not zero*/
+  
 }
 
 /* Exit codes:
@@ -120,36 +137,28 @@ void printInt(int intToPrint, int radix) {
  *   2: Bad input in one of the hex numbers. Failed.
  */
 int main (int argc, char *argv[]){
-  /*  Read in all the data from argv. Set up a switch case:
-   *  if 0, set beginning to True. If beginning == Tru}e, and value == x,
-   *  start subroutine to check next digits. If space, restart.
-   *  If anything other than those, do error subroutine (did it start with
-   *  0? follwed by an x? wrong character? etc etc
-   *  If all pass, store value to the array. Then pass each value to parseHex
-   *  and store it in an array to pass to printOutput. printOutput will
-   *  take each value and send it to printInt, which will print in the given
-   *  radix. Send each value twice (once for binary, once for decimal).
-   */
-  
   if (argc == 1) {
     /* no arguements, do nothing */ 
     return 0;
   }  
-  printf("Radix test, 10 to 2:\n");
-  printInt(10, 2);
-  printf("Values to convert: %d\n", argc - 1);
   if (argc > 7) {
     printf("Maximum of 6 values accepted.  Quitting.\n");
     return 1;
   } 
+  printf("Values to convert: %d\n", argc - 1);
+  
+  char *copyOfArgv[argc];
+  int j;
+  for ( j = 0; j < argc; j++ ) {
+    copyOfArgv[j] = argv[j]; 
+  }
+    
   int intarray[argc];
   int i;
   for ( i = 1; i < argc; i++ ) {
-    if (DEBUG == 1) {
-      printf("Parsing argv = %s\n", argv[i]);
-    }
     int decimal; /*contains the decimal value of the hex input*/
-    decimal = parseHex(argv[i]);
+
+    decimal = parseHex(copyOfArgv[i]);
     if (decimal == -1) {
       printf("Bad input encountered.  Quitting.\n");
       return 2;
@@ -157,12 +166,7 @@ int main (int argc, char *argv[]){
     else {
       intarray[i - 1] = decimal;
     }
-    
   }
-  printOutput(intarray, argv ,argc - 1);
-  
-  
+  printOutput(intarray, argv ,argc);
   return 0;
-  
-  
 }
