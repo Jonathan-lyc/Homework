@@ -42,7 +42,7 @@ int parseHex(char hex[]) {
     curr = hex[pos];
     count++;
   }
-    /* Converts to integer, based on the offset of each place. */
+    /* Converts to integer, based on the value/offset of each place. */
     int offset = 0;
     int j;
     int total = 0;
@@ -60,6 +60,15 @@ int parseHex(char hex[]) {
   return total;
     
 }
+
+/* Power of is a power function, since C doesn't include one.
+ * 
+ * Parameters:
+ *   int a: base of the power function (a^b)
+ *   int b: exponent of the power function (a^b)
+ * Return:
+ *   total: what the equation equals (a^b)
+ */
 int powerOf(int a, int b) {
   int count = 0;
   int i = 0;
@@ -77,10 +86,17 @@ int powerOf(int a, int b) {
   return total;
 }
 
+/* printOutput takes the arrays of integers and argv and prints them to
+ * 	stdout. It makes calls to printInt to accomplis this.
+ * Parameters:
+ *   int array[]: Array of hex values converted to integers
+ *   char *copyofArgv[]: the stdin arguments passed to the program
+ *   int numOfInts: size of array[]
+ */
 void printOutput(int array[], char *copyOfArgv[], int numOfInts) {
   int i;
   for ( i = 1; i < numOfInts; i++ ) {
-    printf("%s\n", *copyOfArgv[i]);
+    printf("%d\n", *copyOfArgv[i]);
     printf("Decimal: ");
     printInt(array[i - 1], 10);
     printf("Binary: ");
@@ -88,13 +104,6 @@ void printOutput(int array[], char *copyOfArgv[], int numOfInts) {
   }
 }
 
-/* This function prints an integer (the first parameter) to standard output, 
-in the radix (base) given as the second parameter. The function is expected 
-to wo/* Checks all the values after 0x to make sure they are valid, and
-   * counts the number of values to make conversions easier.
-   *rk on any radix of 2-10. Do not print any leading zeros. 
-   
-   */
 void printInt(int intToPrint, int radix) {
   int arraySize = 15;
   int intArray[arraySize];
@@ -128,10 +137,18 @@ void printInt(int intToPrint, int radix) {
     }
   }
   printf("\n");
-  
 }
 
-/* Exit codes:
+/* Main checks that the number of arguments is correct, then calls the to
+ * 	the other functions to parse the hexidecimal values to integers
+ * 	then print them out to stdout. It will quit on incorrect input with
+ * 	an appro
+ * 
+ * Parameters:
+ *   argc: the number of arguments (including the original program)
+ *   argv: an array of the arguments (including the original program name)
+ * 
+ * Exit codes:
  *   0: Completed successfully
  *   1: More than 6 values to convert. Failed.
  *   2: Bad input in one of the hex numbers. Failed.
