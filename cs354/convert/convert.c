@@ -12,7 +12,6 @@
 #include "stdio.h"
 
 #define ARRAYSIZE 6
-#define DEBUG 1
 
 
 int parseHex(char hex[]);
@@ -183,7 +182,6 @@ int main (int argc, char *argv[]){
     printf("Maximum of 6 values accepted.  Quitting.\n");
     return 1;
   } 
-    
   int intarray[argc];
   int i;
   for ( i = 1; i < argc; i++ ) {
