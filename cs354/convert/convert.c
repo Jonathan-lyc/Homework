@@ -1,5 +1,6 @@
 /* Assignment1 Convert
  * by Josh Gachnang
+ * CS354, Section 1. Instructer: Karen Miller
  *
  * This program takes up to 6 hexcadecimal numbers and converts them to
  * binary and decimal notation, while checking for errors. It then prints
@@ -10,7 +11,6 @@
 #include "stdio.h"
 
 #define ARRAYSIZE 6
-#define DEBUG 1
 
 
 int parseHex(char hex[]);
@@ -80,7 +80,7 @@ int powerOf(int a, int b) {
 void printOutput(int array[], char *copyOfArgv[], int numOfInts) {
   int i;
   for ( i = 1; i < numOfInts; i++ ) {
-    printf("%s\n", *copyOfArgv[i]);
+    printf("%d\n", *copyOfArgv[i]);
     printf("Decimal: ");
     printInt(array[i - 1], 10);
     printf("Binary: ");
@@ -149,10 +149,7 @@ int main (int argc, char *argv[]){
   
   char *copyOfArgv[argc];
   int j;
-  for ( j = 0; j < argc; j++ ) {
-    copyOfArgv[j] = argv[j]; 
-  }
-    
+  printf("%c\n", *copyOfArgv[1]);
   int intarray[argc];
   int i;
   for ( i = 1; i < argc; i++ ) {
