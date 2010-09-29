@@ -1,7 +1,9 @@
-/* Assignment1 Convert
+/* Assignment1 convert.c
  * by Josh Gachnang
+ * Class: CS354-1, Instructor: Karen Miller
+ * 
  *
- * This program takes up to 6 hexcadecimal numbers and converts them to
+ * This program takes up to 6 hexadecimal numbers and converts them to
  * binary and decimal notation, while checking for errors. It then prints
  * out everything in a readable format. The max size hex number it can 
  * handle is a 32 bit, 2s-compliment number.
@@ -17,7 +19,15 @@ int parseHex(char hex[]);
 void printOutput(int array[], char *copyOfArgv[], int numOfInts);
 void printInt(int intToPrint, int radix);
 
-
+/* parseHex takes an array of characters representing a hexadecimal 
+ * 	number and returns an integer.
+ * 
+ * Parameters:
+ *   char hex[]: The array of characters representing a hexadecimal 
+ * 	number, from the argv array.
+ * Return:
+ *   int total: An integer value of the represented hexadecimal number.
+ */
 int parseHex(char hex[]) {
   if (hex[0] != '0' || hex[1] != 'x') {
     return -1;
@@ -79,6 +89,7 @@ int powerOf(int a, int b) {
   if ( b == 1 ) {
     return a;  
   }
+  /* Multiply the number by itself the specified amount of times */
   for ( i = 1; i < b; i++ ) {
     total = total * a;
     count++;
@@ -88,6 +99,7 @@ int powerOf(int a, int b) {
 
 /* printOutput takes the arrays of integers and argv and prints them to
  * 	stdout. It makes calls to printInt to accomplis this.
+ * 
  * Parameters:
  *   int array[]: Array of hex values converted to integers
  *   char *copyofArgv[]: the stdin arguments passed to the program
@@ -96,7 +108,7 @@ int powerOf(int a, int b) {
 void printOutput(int array[], char *copyOfArgv[], int numOfInts) {
   int i;
   for ( i = 1; i < numOfInts; i++ ) {
-    printf("%d\n", *copyOfArgv[i]);
+    printf("%s\n", copyOfArgv[i]);
     printf("Decimal: ");
     printInt(array[i - 1], 10);
     printf("Binary: ");
@@ -104,6 +116,14 @@ void printOutput(int array[], char *copyOfArgv[], int numOfInts) {
   }
 }
 
+/* printInt takes a integer and converts it to a different base, such as
+ * 	base10 or base2 (decimal and binary). It then prints the value to 
+ * 	stdout.
+ * 
+ * Parameters:
+ *   int intToPrint: the integer to be converted
+ *   int radix: the base to convert the integer to (tested for 2-10)
+ */
 void printInt(int intToPrint, int radix) {
   int arraySize = 15;
   int intArray[arraySize];
@@ -124,6 +144,7 @@ void printInt(int intToPrint, int radix) {
       intToPrint = temp;
     }
   }
+  /* Find the first non-zero value, then start printing */
   int j;
   int leadingZeroes = 0;
   for ( j = 0; j < arraySize; j++) {
@@ -140,7 +161,7 @@ void printInt(int intToPrint, int radix) {
 }
 
 /* Main checks that the number of arguments is correct, then calls the to
- * 	the other functions to parse the hexidecimal values to integers
+ * 	the other functions to parse the hexadecimal values to integers
  * 	then print them out to stdout. It will quit on incorrect input with
  * 	an appro
  * 
@@ -162,20 +183,12 @@ int main (int argc, char *argv[]){
     printf("Maximum of 6 values accepted.  Quitting.\n");
     return 1;
   } 
-  printf("Values to convert: %d\n", argc - 1);
-  
-  char *copyOfArgv[argc];
-  int j;
-  for ( j = 0; j < argc; j++ ) {
-    copyOfArgv[j] = argv[j]; 
-  }
     
   int intarray[argc];
   int i;
   for ( i = 1; i < argc; i++ ) {
     int decimal; /*contains the decimal value of the hex input*/
-
-    decimal = parseHex(copyOfArgv[i]);
+    decimal = parseHex(argv[i]);
     if (decimal == -1) {
       printf("Bad input encountered.  Quitting.\n");
       return 2;
@@ -184,6 +197,7 @@ int main (int argc, char *argv[]){
       intarray[i - 1] = decimal;
     }
   }
+  
   printOutput(intarray, argv ,argc);
   return 0;
 }
