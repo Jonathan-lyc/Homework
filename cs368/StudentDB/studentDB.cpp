@@ -1,12 +1,8 @@
 /*******************************************************************************
-Author:        <your name>
-CS Login:      <your login name>
+Author:        Josh Gachnang
+CS Login:      gachnang@cs.wisc.edu
 
-Pair Partner:  <name of your pair programming partner (if applicable)>
-CS Login:      <your partner's login name>
-
-Credits:       <name of anyone (other than your pair programming partner) who 
-                helped you write your program>
+Credits:       
 
 Course:         CS 368, Fall 2010
 Assignment:     Programming Assignment 1 
@@ -19,6 +15,9 @@ int main() {
     bool done = false;
     char choice;
     int studentID;
+    double gpa;
+    int credits;
+    
 
     cout << "Enter your commands at the ? prompt:" << endl;
     while (!done) {
@@ -27,11 +26,22 @@ int main() {
 
         switch (choice) {
 
-            case 'd':  
+            case 'd':  // deletes the student with the given ID
+                break;
+		
+	    case 'a':  
+                cin >> studentID;  // adds in the student
+                break;
+		
+	    case 'u':  // updates the student
                 cin >> studentID;  // read in the integer ID
                 break;
-
-            case 'q':  
+	    
+	    case 'p':  // prints the student
+                cin >> studentID;  // read in the integer ID
+                break;
+		
+            case 'q':  // exits the proram
                 done = true;
                 cout << "Quitting" << endl;
                 break;
