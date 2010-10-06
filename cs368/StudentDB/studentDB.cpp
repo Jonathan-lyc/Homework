@@ -18,17 +18,17 @@ struct Student {
 } database[4000];  // Stores all the students.
 
 int unused = 0; // Points to the next open spot in the database.
+// This represents the max number of students, if none had been deleted.
 
-Student getStudent(int id) { //This should probably be a pointer
+int getStudent(int id) { //This should probably be a pointer
     Student tmp;
     for (int i = 0; i < unused; i++) {
 	tmp = database[i];
 	if (tmp.id == id) {
-	    return tmp;
+	    return i;
 	}
     }
-    tmp.id = -1;
-    return tmp;
+    return 4000;
 }
 
 void printStudent(Student s) {
@@ -36,11 +36,9 @@ void printStudent(Student s) {
 }
 
 void print() {
-    cout << "dbg " << unused;
     for (int i = 0; i < unused; i++) {
 	Student tmp = database[i];
-	
-	if (tmp.id != -1) {
+	if (tmp.id != -1) { // If id = -1, disregard it as deleted
 	    printStudent(tmp);
 	}
     }
@@ -56,12 +54,13 @@ void addStudent(int id, int credits, double gpa) {
 }
 
 void deleteStudent(int id) {
-    Student tmp = getStudent(id);
-    tmp.id = -1;
+    Student tmp = database[getStudent(id)];
+    tmp.id = -1; // If id = -1, disregard it as deleted
 }
 
 void updateStudent(int id, char grade, int credits) {
-    Student tmp = getStudent(id);
+    Student tmp = database[getStudent(id)];
+    cout << tmp.id;
     int gradePts;
     switch (grade) {
 	case 'A':
@@ -80,10 +79,9 @@ void updateStudent(int id, char grade, int credits) {
 	    gradePts = 0.0;
 	    break;
     }
-    int gpaPts = tmp.gpa * tmp.credits;
-    gpaPts = gpaPts + (gradePts * credits);
-    tmp.gpa += gpaPts;
-    tmp.credits += credits;
+    int gpaPts = ((tmp.gpa * tmp.credits) + (gradePts * credits)) / (credits + tmp.credits); //Not correct
+    tmp.gpa = tmp.gpa + gpaPts;
+    tmp.credits = tmp.credits + credits;
     cout << "Updated student record: ";
     printStudent(tmp);
 }
@@ -143,6 +141,7 @@ int main() {
 		    cout << "Not a valid number of credits\n";
 		    break;
 		}
+		updateStudent(studentID, grade, credits);
                 break;
 	    
 	    case 'p':  // prints the student
