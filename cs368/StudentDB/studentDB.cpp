@@ -7,10 +7,28 @@ Credits:       None
 Course:        CS 368, Fall 2010
 Assignment:    Programming Assignment 1 
 *******************************************************************************/
+
+/**
+  * The Student Database stores information about student's GPA
+  * and how many credits they have taken.  They are identified by 
+  * their 6 digit student ID. This console app allows the user to 
+  * add, update and delete students.
+  *
+  * <p>Bugs: Doesn't properly update things in the database. 
+  *
+  * @author Josh Gachnang
+  */
 #include <iostream>
 
 using namespace std;
 
+/** The basic storage structure for the students. These are stored in the 
+  * database array to form the database.
+  *
+  * @param id 6 digit student ID, unique identifier for studentID
+  * @param credits Integer of the number of credits taken
+  * @param gpa Floating point GPA
+  */
 struct Student {
     int id;
     int credits;
@@ -20,6 +38,11 @@ struct Student {
 int unused = 0; // Points to the next open spot in the database.
 // This represents the max number of students, if none had been deleted.
 
+  /** Searches the database for the student by the given student ID
+    *
+    * @param id Student id to search for
+    * @return Either the spot in the database that the stuent is occupying
+    */
 int getStudent(int id) { //This should probably be a pointer
     Student tmp;
     for (int i = 0; i < unused; i++) {
