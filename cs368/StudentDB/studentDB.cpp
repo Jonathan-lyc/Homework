@@ -8,16 +8,16 @@ Course:        CS 368, Fall 2010
 Assignment:    Programming Assignment 1 
 *******************************************************************************/
 
-/**
-  * The Student Database stores information about student's GPA
-  * and how many credits they have taken.  They are identified by 
-  * their 6 digit student ID. This console app allows the user to 
-  * add, update and delete students.
-  *
-  * <p>Bugs: Doesn't properly update things in the database. 
-  *
-  * @author Josh Gachnang
-  */
+  /**
+    * The Student Database stores information about student's GPA
+    * and how many credits they have taken.  They are identified by 
+    * their 6 digit student ID. This console app allows the user to 
+    * add, update and delete students.
+    *
+    * <p>Bugs: Doesn't properly update things in the database. 
+    *
+    * @author Josh Gachnang
+    */
 #include <iostream>
 
 using namespace std;
@@ -54,10 +54,17 @@ int getStudent(int id) { //This should probably be a pointer
     return 4000;
 }
 
+  /** Prints out the student's information.
+    *  
+    * @param s A student struct to be printed.
+    */
 void printStudent(Student s) {
     cout << s.id << ", " << s.credits << ", " << s.gpa << "\n";
 }
 
+  /** Prints the entire database by getting each non-deleted student
+    *  and passing them to printStudent.
+    */
 void print() {
     for (int i = 0; i < unused; i++) {
 	Student tmp = database[i];
@@ -67,6 +74,12 @@ void print() {
     }
 }
 
+  /** Adds a student to the database
+    * 
+    * @param id 6 digit student ID, unique identifier for studentID
+    * @param credits Integer of the number of credits taken
+    * @param gpa Floating point GPA
+    */
 void addStudent(int id, int credits, double gpa) {
     Student student;
     student.id = id;
@@ -75,14 +88,23 @@ void addStudent(int id, int credits, double gpa) {
     database[unused] = student;
     unused++;
 }
-
+  /** Deletes a student from the database
+   * 
+   *  @param id 6 digit student ID, unique identifier for studentID
+   */
 void deleteStudent(int id) {
     int getid = getStudent(id);
     Student tmp = database[getid];
     tmp.id = -1; // If id = -1, disregard it as deleted
     database[getid] = tmp;
 }
-
+  /** Finds a student in the database and updates their GPA and credits.
+   *  
+   *  @param id 6 digit student ID, unique identifier for studentID
+   *  @param grade A single character representing a grade of either an A, B,
+   *	     C, D, or F.
+   *  @param credits Integer of the number of credits taken
+   */
 void updateStudent(int id, char grade, int credits) {
     int getid = getStudent(id);
     Student tmp = database[getid];
@@ -113,6 +135,11 @@ void updateStudent(int id, char grade, int credits) {
     printStudent(tmp);
 }
 
+ /** Main class. Starts a command prompt interface, and passes to the other
+  *  functions.
+  * 
+  *  @return 0 in all cases.
+  */
 int main() {
     bool done = false;
     char choice;
