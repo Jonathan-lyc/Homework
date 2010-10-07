@@ -54,12 +54,15 @@ void addStudent(int id, int credits, double gpa) {
 }
 
 void deleteStudent(int id) {
-    Student tmp = database[getStudent(id)];
+    int getid = getStudent(id);
+    Student tmp = database[getid];
     tmp.id = -1; // If id = -1, disregard it as deleted
+    database[getid] = tmp;
 }
 
 void updateStudent(int id, char grade, int credits) {
-    Student tmp = database[getStudent(id)];
+    int getid = getStudent(id);
+    Student tmp = database[getid];
     cout << tmp.id;
     int gradePts;
     switch (grade) {
@@ -82,6 +85,7 @@ void updateStudent(int id, char grade, int credits) {
     int gpaPts = ((tmp.gpa * tmp.credits) + (gradePts * credits)) / (credits + tmp.credits); //Not correct
     tmp.gpa = tmp.gpa + gpaPts;
     tmp.credits = tmp.credits + credits;
+    database[getid] = tmp;
     cout << "Updated student record: ";
     printStudent(tmp);
 }
@@ -118,7 +122,7 @@ int main() {
 		}
                 cin >> gpa;  // adds in the student
                 if (gpa < 0 || gpa > 4) {
-		    cout << "Not a valid GPA";
+		    cout << "Not a valid GPA\n";
 		    break;
 		}
 		addStudent(studentID, credits, gpa);
