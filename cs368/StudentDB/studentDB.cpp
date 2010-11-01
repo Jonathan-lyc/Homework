@@ -109,7 +109,7 @@ void updateStudent(int id, char grade, int credits) {
     int getid = getStudent(id);
     Student tmp = database[getid];
     cout << tmp.id;
-    int gradePts;
+    double gradePts;
     switch (grade) {
 	case 'A':
 	    gradePts = 4.0;
@@ -127,7 +127,7 @@ void updateStudent(int id, char grade, int credits) {
 	    gradePts = 0.0;
 	    break;
     }
-    int gpaPts = ((tmp.gpa * tmp.credits) + (gradePts * credits)) / (credits + tmp.credits); //Not correct
+    double gpaPts = ((tmp.gpa * tmp.credits) + (gradePts * credits)) / (credits + tmp.credits); //Not correct
     tmp.gpa = tmp.gpa + gpaPts;
     tmp.credits = tmp.credits + credits;
     database[getid] = tmp;
