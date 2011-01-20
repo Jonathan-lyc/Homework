@@ -1,0 +1,23 @@
+
+# A simple SAL program used for assignment 0.
+
+# declarations
+   .data
+linefeed:  .byte '\n'
+space:     .byte ' '
+msg1:      .asciiz "\n\nCounting to 10 starting from 0:\n"
+count:     .word  0  # just the count to be printed out
+
+   .text
+__start:   puts msg1
+
+loop_top:
+	   bgt  count, 10, program_done
+           put  count
+           put  space
+	   add  count, count, 1
+	   b    loop_top
+
+program_done:
+           put linefeed
+           done

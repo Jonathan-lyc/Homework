@@ -1,0 +1,64 @@
+#! /bin/csh -f
+    #limit coredumpsize 0
+    set DIR = /afs/cs.wisc.edu/p/course/cs354-common/public/bin
+    set geom = (-geom =-0+0)
+    set sim = xspim
+    set log
+    set trap = -notrap
+    set d2
+
+
+top:
+    if ($#argv == 0)   goto usage
+    switch($argv[1])
+    case -nox:
+	    echo The non-X version of the simulator is not working correctly.
+	    echo
+	    echo You can still use this version to check for syntax errors
+	    echo and for some debugging.  However HP-UX will echo your
+	    echo characters and buffer your lines.
+	    echo
+	set sim = spim
+	shift argv
+	goto top
+    case -log:
+	set log = -log
+	shift argv
+	goto top
+    case -d2:
+	set d2 = (-d2 $argv[2])
+	shift argv
+	shift argv
+	goto top
+    case -mytrap:
+	set trap = -notrap
+	shift argv
+	goto top
+    case -*:
+	echo Unknown flag: $1
+	exit -1
+    default:
+	breaksw
+    endsw
+    if (! -e $argv[1]) then
+	    echo No $argv[1]'?'
+	    goto usage
+	endif
+    endif
+    if ($sim == "xspim") then
+	$DIR/$sim $log $d2 $trap -font "-*-courier-medium-r-normal--12-*-75-*" -quiet -memio -file $argv[1]
+    else
+	if ($log == "") then
+	    $DIR/$sim $trap -quiet -memio -file $argv[1]
+	else
+	    $DIR/$sim $trap -quiet -memio -file $argv[1] | tee output.log
+	endif
+    endif
+    goto quit
+
+usage:
+    set prname = $0
+    echo usage: $prname:t '[ filename ]'
+
+quit:
+    stty echo cooked

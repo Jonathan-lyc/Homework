@@ -1,0 +1,45 @@
+#! /bin/csh -f
+    #limit coredumpsize 0
+    set DIR = /afs/cs.wisc.edu/p/course/cs354-common/public/bin 
+    set geom = (-geom =-0+0)
+    set sim = xspim.solaris
+    set log
+
+top:
+    if ($#argv == 0)   goto usage
+    switch($argv[1])
+    case -nox:
+	set sim = spim
+	shift argv
+	goto top
+    case -log:
+	set log = -log
+	shift argv
+	goto top
+    case -*:
+	echo Unknown flag: $1
+	exit -1
+    default:
+	breaksw
+    endsw
+    if (! -e $argv[1]) then
+	    echo No $argv[1]'?'
+	    goto usage
+	endif
+    endif
+    if ($sim == "xspim") then
+	$DIR/$sim $log -file $argv[1] -font "-*-courier-medium-r-normal--12-*-75-*"
+    else
+	if ($log == "") then
+	    $DIR/$sim -file $argv[1]
+	else
+	    $DIR/$sim -file $argv[1] | tee output.log
+	endif
+    endif
+    goto quit
+
+usage:
+    set prname = $0
+    echo usage: $prname:t '[ filename ]'
+
+quit:

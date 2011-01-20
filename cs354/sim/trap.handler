@@ -1,0 +1,97 @@
+# SPIM S20 MIPS simulator.
+# The default trap handler for spim.
+# Copyright (C) 1990 James Larus, larus@cs.wisc.edu.
+#
+#
+# SPIM is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 1, or (at your option) any
+# later version.
+#
+# SPIM is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU CC; see the file COPYING.  If not, write to James R.
+# Larus, Computer Sciences Department, University of Wisconsin--Madison,
+# 1210 West Dayton Street, Madison, WI 53706, USA or to the Free
+# Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+# $Header: /u/scottk/cs354/spim/RCS/trap.handler,v 2.2 1992/11/10 22:42:50 scottk Exp $
+
+
+# Define the exception handling code.  This must go first!
+
+	.kdata
+__m1_:	.asciiz "  Exception "
+__m2_:	.asciiz " caught by trap handler.\n"
+__m3_:	.asciiz "Continuing. . .\n"
+__m4_:	.asciiz "Halting.\n"
+__e0_:	.asciiz " [Interrupt]"
+__e1_:	.asciiz	" [TLB modification !BUG!]"
+__e2_:	.asciiz	" [TLB miss !BUG!]"
+__e3_:	.asciiz	" [TLB miss !BUG!]"
+__e4_:	.asciiz	" [Unaligned address in inst/data fetch]"
+__e5_:	.asciiz	" [Unaligned address in store]"
+__e6_:	.asciiz	" [Bad address in text read]"
+__e7_:	.asciiz	" [Bad address in data/stack read]"
+__e8_:	.asciiz	" [Error in syscall]"
+__e9_:	.asciiz	" [Breakpoint]"
+__e10_:	.asciiz	" [Reserved instruction]"
+__e11_:	.asciiz	" [Syscall exception !BUG!]"
+__e12_:	.asciiz	" [Arithmetic overflow]"
+__e13_:	.asciiz	" [Inexact floating point result]"
+__e14_:	.asciiz	" [Invalid floating point result]"
+__e15_:	.asciiz	" [Divide by 0]"
+__e16_:	.asciiz	" [Floating point overflow]"
+__e17_:	.asciiz	" [Floating point underflow]"
+__excp:	.word __e0_,__e1_,__e2_,__e3_,__e4_,__e5_,__e6_,__e7_,__e8_,__e9_
+	.word __e10_,__e11_,__e12_,__e13_,__e14_,__e15_,__e16_,__e17_
+s1:	.word 0
+s2:	.word 0
+
+	.ktext
+	.space 0x80	# Put trap handler at 0x8000080
+	sw $v0 s1	# Not re-entrent
+	sw $a0 s2	# Don't need to save k0/k1
+	mfc0 $k0 $13	# Cause
+	and $k0 $k0 0xff# Use just ExcCode field
+	mfc0 $k1 $14	# EPC
+	li $v0 4	# Print " Exception "
+	la $a0 __m1_
+	syscall
+	li $v0 1	# Print exception number
+        srl $a0 $k0 2
+	syscall
+	li $v0 4	# Print type of exception
+	lw $a0 __excp($k0)
+	syscall
+	li $v0 4	# Print " occurred.\n"
+	la $a0 __m2_
+	syscall
+        srl $a0 $k0 2
+	beq $a0 12 ret	# continue on overflow
+	beq $a0 13 ret	# continue on inexact fp result
+	beq $a0 14 ret	# continue on invalid fp result
+	beq $a0 16 ret	# continue on fp overflow
+	beq $a0 17 ret	# continue on fp underflow
+	li $v0 4	# Print "Halting.\n"
+	la $a0 __m4_
+	syscall
+	li $v0 10	# Exit on all bug overflow exceptions
+	syscall		# syscall 10 (exit)
+
+ret:	li $v0 4	# Print "Continuing. . .\n"
+	la $a0 __m3_
+	syscall
+
+	lw $v0 s1
+	lw $a0 s2
+	addiu $k1 $k1 4 # Return to next instruction
+	rfe		# Return from exception handler
+	jr $k1
+
+	.text
+	.globl __start
