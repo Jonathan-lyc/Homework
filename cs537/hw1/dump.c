@@ -20,7 +20,7 @@ int
 main(int argc, char *argv[])
 {
     // arguments
-    char *inFile = "/no/such/file";
+    char *inFile = "/home/josh/programming/Homework/cs537/hw1/outfile";
 
     // input params
     int c;
