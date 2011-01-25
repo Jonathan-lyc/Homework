@@ -1,10 +1,14 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-
+#include <fcntl.h>
+#include <assert.h>
+#include <ctype.h>
+#include <string.h>
 #include "sort.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+
 
 void usage();
 
@@ -12,11 +16,14 @@ int main(int argc, char *argv[]) {
   // The following code was inspired by generate.c :)
 
   // args
-  char input[50];
-  char output[50];
+  char *input;
+  char *output;
 
+  if (argc != 4) {
+    usage();
+  }
   int c;
-  while((c = getopt(argc, argv, "i:o:")) != -1 {
+  while ((c = getopt(argc, argv, "i:o:")) != -1) {
     switch (c) {
     case 'i':
       input = strdup(optarg);
@@ -30,7 +37,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Attempt to open input file.
-  int input_fd = open(input, O_RONLY, S_IRWXU);
+  int input_fd = open(input, O_RDONLY, S_IRWXU);
   if (input_fd < 0) {
     fprintf(stderr, "Error: Cannot open file %s", input);
   }
@@ -41,7 +48,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: Cannot open file %s", output);
   }
 
-  closeFiles(inputfile, input, outputfile, output);
+  // Get size of file for efficient malloc
+
   return(0);
 }
 
