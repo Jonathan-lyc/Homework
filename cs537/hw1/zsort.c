@@ -14,7 +14,7 @@
 
 void usage();
 void fileError(char *file, int input_fd, int output_fd);
-
+int recordcmp( rec_t p1, rec_t p2);
 int
 main(int argc, char *argv[]) {
   // The following code was inspired by generate.c :)
@@ -63,14 +63,14 @@ main(int argc, char *argv[]) {
   if (DEBUG == 1) {
     printf("%d\n", bytes);
   }
+  int num_recs = bytes / 128;
 
-  int *sort_array = malloc(bytes);
+  rec_t *sort_array = malloc(sizeof(rec_t) * num_recs);
   if (sort_array == NULL) {
     fprintf(stderr, "Malloc failed");
   }
-
-  int num_recs = bytes / 128;
-
+  int i;
+  int j = 0;
 
   rec_t records[BUFSIZE];
   while (1) {
@@ -78,24 +78,32 @@ main(int argc, char *argv[]) {
     if ((rc = read(input_fd, records, BUFSIZE * sizeof(rec_t))) == 0) {
         break;
     }
-    int i, j;
     for (i = 0; i < (rc / sizeof(rec_t)); i++) {
-      printf("key:%9d rec:", records[i].key);
-      for (j = 0; j < NUMRECS; j++) {
-        printf("%3d ", records[i].record[j]);
-      }
-      printf("\n");
+      printf("%d\n", records[i].key);
+      sort_array[j] = records[i];
+      //printf("%d, %d\n", j, sort_array[j].key);
+      j++;
     }
   }
-
+  int k;
+  for (k = 0; k < num_recs; k++) {
+    printf("%d, %d\n", k, sort_array[k].key);
+  }
   close(input_fd);
   close(output_fd);
   return(0);
 }
 
-int
-recordcmp (const void *p1, const void *p2) {
-  
+int recordcmp(const rec_t p1, const rec_t p2) {
+  if (p1.key > p2.key) {
+    return 1;
+  }
+  else if (p1.key < p2.key) {
+    return -1;
+  }
+  else {
+    return 0;
+  }
 }
 
 void
