@@ -10,11 +10,12 @@
 #include <sys/stat.h>
 
 #define BUFSIZE (64)
-#define DEBUG (1)
+#define DEBUG (0)
 
 void usage();
 void fileError(char *file, int input_fd, int output_fd);
-int recordcmp( rec_t p1, rec_t p2);
+int recordcmp(const void *p1, const void *p2);
+
 int
 main(int argc, char *argv[]) {
   // The following code was inspired by generate.c :)
@@ -65,40 +66,73 @@ main(int argc, char *argv[]) {
   }
   int num_recs = bytes / 128;
 
+  //Malloc the array, error out if Malloc fails
   rec_t *sort_array = malloc(sizeof(rec_t) * num_recs);
   if (sort_array == NULL) {
     fprintf(stderr, "Malloc failed");
+    exit(1);
   }
   int i;
   int j = 0;
 
+  //Read in file, put items into the array.
   rec_t records[BUFSIZE];
   while (1) {
     int rc;
     if ((rc = read(input_fd, records, BUFSIZE * sizeof(rec_t))) == 0) {
         break;
     }
+
     for (i = 0; i < (rc / sizeof(rec_t)); i++) {
-      printf("%d\n", records[i].key);
+      if(DEBUG == 1) {
+        printf("%d\n", records[i].key);
+      }
       sort_array[j] = records[i];
-      //printf("%d, %d\n", j, sort_array[j].key);
       j++;
     }
   }
-  int k;
-  for (k = 0; k < num_recs; k++) {
-    printf("%d, %d\n", k, sort_array[k].key);
+
+  //Print out index and key
+  if (DEBUG == 1) {
+    int k;
+    for (k = 0; k < num_recs; k++) {
+      printf("%d, %d\n", k, sort_array[k].key);
+    }
   }
+
+  //Sort the array!!
+  qsort(sort_array, num_recs, sizeof(rec_t), recordcmp);
+
+  //Print all records' keys.
+  if (DEBUG == 0) {
+    printf("Qsort finished");
+    int k;
+    for (k = 0; k < num_recs; k++) {
+      printf("%d, %d\n", k, sort_array[k].key);
+    }
+  }
+
+  //Write output to file
+  int write_err = write(output_fd, sort_array, sizeof(rec_t) * num_recs);
+  if (write_err == 0) {
+    fileError(output, input_fd, output_fd);
+  }
+
   close(input_fd);
   close(output_fd);
   return(0);
 }
 
-int recordcmp(const rec_t p1, const rec_t p2) {
-  if (p1.key > p2.key) {
+//Qsort method for comparing two records
+int
+recordcmp(const void *p1, const void *p2) {
+  const int a1 = ((rec_t *)p1)->key;
+  const int a2 = ((rec_t *)p2)->key;
+  //printf("%d, %d\n", a1, a2);
+  if (a1 > a2) {
     return 1;
   }
-  else if (p1.key < p2.key) {
+  else if (a1 < a2) {
     return -1;
   }
   else {
@@ -106,12 +140,16 @@ int recordcmp(const rec_t p1, const rec_t p2) {
   }
 }
 
+//Print usage
 void
 usage() {
   fprintf(stderr, "usage: zsort -i inputfile -o outputfile\n");
   exit(1);
 }
 
+//Whenever any error occurs in reading/writing the file,
+//this function prints the appropriate message and makes
+//sure the files get closed before exiting.
 void
 fileError(char *file, int input_fd, int output_fd) {
   fprintf(stderr, "Error: Cannot open file %s\n", file);
