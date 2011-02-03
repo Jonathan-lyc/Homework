@@ -3,13 +3,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#define MAXINPUT (256)
-#define MAXCOMMANDS (86) //Should be MAXINPUT/3 (2 letter cmds + ;)
+#define MAXINPUT (512)
+#define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
 #define DEBUG (1)
 
 int prompt();
 void error();
 void batch();
+void command_handler(char *commands, int fp);
 
 int
 main(int argc, char *argv[]){
@@ -37,9 +38,9 @@ prompt() {
   }
 
   printf("mysh> ");
-  int a = fgets (input, MAXINPUT, stdin);
+  char *a = fgets(input, MAXINPUT, stdin);
   //Check that fgets didn't have an error.
-  if (a = NULL) {
+  if (a == NULL) {
     error();
   }
   //Take out newline, turn to null terminated string
@@ -47,16 +48,19 @@ prompt() {
     input[strlen (input) - 1] = '\0';
   }
 
-  if (DEBUG == 1) {
+  if (DEBUG == 2) {
     printf("\nYou typed: %s\n", input);
   }
-  int i;
   char *result = NULL;
-  char delim[] = ";";
-  result = strtok(input, delim);
+  char *sc = ";\n";
+  result = strtok(input, sc);
   while (result != NULL ) {
-    printf("%s\n", result);
-    result = strtok(input, delim);
+    //Check for output redirection
+    char *gt = ">";
+     char *gt = strpbrk(
+    char command = strtok(result, gt);
+    command_handler(result, NULL);
+    result = strtok_r(NULL, sc);
   }
   //Break up on ; into array
   //Go through each complete command, break into args
@@ -64,14 +68,20 @@ prompt() {
   return 0;
 }
 
-int
-command_handler(char *commands) {
-
+void
+command_handler(char *commands, int fp) {
+  printf("Your command is: %s\n", commands);
+  int i;
+  char *output;
+  for (i = 0; i < strlen(commands); i++) {
+    char c = commands[i];
+  }
 }
 
 void
 error() {
-  printf("Error\n");
+  char error_message[30] = "An error has occurred\n";
+  write(STDERR_FILENO, error_message, strlen(error_message));
   exit(1);
 }
 
