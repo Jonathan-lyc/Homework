@@ -10,7 +10,7 @@
 int prompt();
 void error();
 void batch();
-void command_handler(char *commands, int fp);
+void command_handler(char *commands, int fp, int background);
 
 int
 main(int argc, char *argv[]){
@@ -52,15 +52,31 @@ prompt() {
     printf("\nYou typed: %s\n", input);
   }
   char *result = NULL;
-  char *sc = ";\n";
-  result = strtok(input, sc);
+  char *scnl = ";\n"; //semicolon/newline separators
+  int fp = NULL; //NULL = STDOUT, anything else is file pointer
+  int background = 0; //0 = foreground, 1 = background
+
+  result = strtok(input, scnl);
   while (result != NULL ) {
     //Check for output redirection
     char *gt = ">";
-     char *gt = strpbrk(
-    char command = strtok(result, gt);
-    command_handler(result, NULL);
-    result = strtok_r(NULL, sc);
+    char *gtexists = strpbrk(result, gt);
+    if (gtexists != NULL) {
+      //Begin output redirection handler
+      printf("GT exists");
+      char *redircmd = strdup(result);
+      result = strtok(redircmd, gt);
+      char *redir = strtok(NULL, gt);
+      printf("%s is cmd, %s is redir", result, redir);
+    }
+    //Check for run in background
+    char *amp = "&";
+    char *ampexists = strpbrk(result, amp);
+    if (ampexists != NULL) {
+      printf("AMP exists");
+    }
+    command_handler(result, fp, background);
+    result = strtok(NULL, scnl);
   }
   //Break up on ; into array
   //Go through each complete command, break into args
@@ -69,7 +85,7 @@ prompt() {
 }
 
 void
-command_handler(char *commands, int fp) {
+command_handler(char *commands, int fp, int background) {
   printf("Your command is: %s\n", commands);
   int i;
   char *output;
