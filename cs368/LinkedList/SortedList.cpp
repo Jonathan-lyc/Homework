@@ -12,13 +12,6 @@ Assignment:    Programming Assignment 2
 #include "Student.h"
 using namespace std;
 
-/*
- * SortedList class
- *
- * A SortedList is an ordered collection of Students.  The Students are ordered
- * from lowest numbered student ID to highest numbered student ID.
- */
-class SortedList {
   public:
     
     /* 
@@ -53,28 +46,50 @@ class SortedList {
       Student *curr = (*currPtr).student;
       Student *next = (*nextPtr).student;
       if ( (*s).getID() < (*curr).getID() ) {
+
+  public:
+    
+    SortedList() {
+    // Constructs an empty list.
+      *head = NULL;
+    }
+
+    bool insert(Student *s) {
+    // If a student with the same ID is not already in the list, inserts 
+    // the given student into the list in the appropriate place and returns
+    // true.  If there is already a student in the list with the same ID
+    // then the list is not changed and false is returned.
+      currPtr = &head;
+      nextPtr = NULL;
+      
+      //Check if the list is empty
+      if ( *currPtr == NULL ) {
+	
+	newNode = new ListNode;
+	newNode.student = *s;
+	return true;
+      }
+      //Check if it should be the first item in the list
+      if ( *s.getID < *currPtr.student.getID ) {
+>>>>>>> .merge_file_woyrh6
 	newNode.next = currPtr;
 	head = &newNode;
       }
       
       //Traverse list, looking for correct spot, or add to end
-      while ( (nextPtr) != NULL ) {
+      while ( *nextPtr != NULL ) {
 	//Make sure it doesn't already exist
-	if ( (*s).getID() == (*curr).getID() ) {
+	if ( *s.getID == *currPtr.student.getID ) {
 	  return false; 
 	}
-	if ( (*s).getID() > (*curr).getID() ) {
-	  if ( (*s).getID() < (*next).getID() || nextPtr == NULL ) {
-	    (*currPtr).next  =  &newNode;
+	if ( *s.getID > *currPtr.student.getID ) {
+	  if ( *s.getID < *nextPtr.student.getID || *nextPtr == NULL ) {
+	    *currPtr.next = &newNode;
 	    newNode.next = nextPtr;
-	  }
-	}
-	else {
-	  //Increment
-	  currPtr = nextPtr;
-	  nextPtr = (*nextPtr).next;
-	  Student *curr = (*currPtr).student;
-	  Student *next = (*nextPtr).student;
+
+            nextPtr = (*nextPtr).next;
+	    Student *curr = (*currPtr).student;
+	    Student *next = (*nextPtr).student;
 	}
       }
       (*currPtr).next = &newNode;
@@ -96,11 +111,20 @@ class SortedList {
       while ( currPtr.next != NULL ) {
 	if ( (*curr).getID() == studentID ) {
 	  return curr;
+	  nextPtr = *nextPtr.next;
 	}
-	currPtr = *currPtr.next;
       }
-      return NULL;
+      *currPtr.next = newNode;
+      return true;
     }
+    
+    Student *find(int studentID) {
+    // Searches the list for a student with the given student ID.  If the
+    // student is found, it is returned; if it is not found, NULL is returned.
+      currPtr = head;
+      while ( *currPtr.next != NULL ) {
+	if ( *currPtr.student.getID == studentID ) {
+	  return *currPtr.student;
     
     /*
      * Searches the list for a student with the given student ID.  If the 
@@ -167,4 +191,40 @@ class SortedList {
       ListNode *next;
     } *head; // pointer to first node in the list;
 
+};
+    Student *remove(int studentID) {
+    // Searches the list for a student with the given student ID.  If the 
+    // student is found, the student is removed from the list and returned;
+    // if no student is found with the given ID, NULL is returned.
+    // Note that the Student is NOT deleted - it is returned - however,
+    // the removed list node should be deleted.
+      currPtr = head;
+      prevPtr = NULL;
+      while ( *currPtr.next != NULL ) {
+	  if ( *currPtr.student.getID == studentID ) {
+	    //Student to be removed is first in list
+	    if ( prevPtr = NULL ) {
+	      ListNode ret = 
+	      head = &currPtr.next;
+	      
+	    }
+	  }
+	  currPtr = *currPtr.next;
+	}
+	return NULL;
+    }
+    void print() const {
+    // Prints out the list of students to standard output.  The students are
+    // printed in order of student ID (from smallest to largest), one per line
+    }
+    
+  private:
+    // Since ListNodes will only be used within the SortedList class,
+    // we make it private.
+    struct ListNode {    
+      Student *student;
+      ListNode *next;
+    };
+
+    ListNode *head; // pointer to first node in the list
 };
