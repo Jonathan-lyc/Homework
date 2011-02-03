@@ -3,7 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#define MAXINPUT 256
+#define MAXINPUT (256)
+#define MAXCOMMANDS (86) //Should be MAXINPUT/3 (2 letter cmds + ;)
+#define DEBUG (1)
 
 int prompt();
 void error();
@@ -16,13 +18,13 @@ main(int argc, char *argv[]){
   }
   //Interactive mode
   if (argc == 1) {
-    prompt();
+    while (1) {
+      prompt();
+    }
   }
   if (argc == 2) {
     batch();
   }
-
-  prompt();
   return 0;
 }
 
@@ -35,15 +37,36 @@ prompt() {
   }
 
   printf("mysh> ");
-  fgets (input, MAXINPUT, stdin);
+  int a = fgets (input, MAXINPUT, stdin);
+  //Check that fgets didn't have an error.
+  if (a = NULL) {
+    error();
+  }
+  //Take out newline, turn to null terminated string
   if (input[strlen (input) -1] == '\n') {
     input[strlen (input) - 1] = '\0';
   }
-  printf("\nYou typed: %s\n", input);
 
-  //Get the command
+  if (DEBUG == 1) {
+    printf("\nYou typed: %s\n", input);
+  }
   int i;
+  char *result = NULL;
+  char delim[] = ";";
+  result = strtok(input, delim);
+  while (result != NULL ) {
+    printf("%s\n", result);
+    result = strtok(input, delim);
+  }
+  //Break up on ; into array
+  //Go through each complete command, break into args
+  //Run command
   return 0;
+}
+
+int
+command_handler(char *commands) {
+
 }
 
 void
