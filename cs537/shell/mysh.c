@@ -11,7 +11,7 @@ int prompt();
 void error();
 void batch();
 void command_handler(char *commands, int fp, int background);
-
+int getfp(char *filename);
 int
 main(int argc, char *argv[]){
   if (argc > 2) {
@@ -55,28 +55,28 @@ prompt() {
   char *scnl = ";\n"; //semicolon/newline separators
   int fp = NULL; //NULL = STDOUT, anything else is file pointer
   int background = 0; //0 = foreground, 1 = background
+  char *tokptr1, *tokptr2;
 
-  result = strtok(input, scnl);
+  result = strtok_r(input, scnl, &tokptr1);
   while (result != NULL ) {
     //Check for output redirection
+    char *command = strdup(result);
     char *gt = ">";
-    char *gtexists = strpbrk(result, gt);
+    char *gtexists = strpbrk(command, gt);
     if (gtexists != NULL) {
       //Begin output redirection handler
-      printf("GT exists");
-      char *redircmd = strdup(result);
-      result = strtok(redircmd, gt);
-      char *redir = strtok(NULL, gt);
-      printf("%s is cmd, %s is redir", result, redir);
+      command = strtok_r(command, gt, &tokptr2);
+      char *redir = strtok_r(NULL, gt, &tokptr2);
+      fp = getfp(redir);
     }
     //Check for run in background
     char *amp = "&";
-    char *ampexists = strpbrk(result, amp);
+    char *ampexists = strpbrk(command, amp);
     if (ampexists != NULL) {
       printf("AMP exists");
     }
-    command_handler(result, fp, background);
-    result = strtok(NULL, scnl);
+    command_handler(command, fp, background);
+    result = strtok_r(NULL, scnl, &tokptr1);
   }
   //Break up on ; into array
   //Go through each complete command, break into args
@@ -87,11 +87,22 @@ prompt() {
 void
 command_handler(char *commands, int fp, int background) {
   printf("Your command is: %s\n", commands);
+  if (fp != 0) {
+    printf("File pointer is %d\n", fp);
+  }
   int i;
   char *output;
   for (i = 0; i < strlen(commands); i++) {
     char c = commands[i];
   }
+}
+
+int
+getfp(char *filename) {
+  char *token = " ";
+  char *trimmed = strtok(filename, token);
+  int fp = open(trimmed, "O_RDONLY");
+  return fp;
 }
 
 void
