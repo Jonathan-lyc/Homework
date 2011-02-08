@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
-#define MAXINPUT (512)
+#define MAXINPUT (513) //512 bytes + null
 #define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
 #define DEBUG (1)
 
@@ -90,10 +91,19 @@ command_handler(char *commands, int fp, int background) {
   if (fp != 0) {
     printf("File pointer is %d\n", fp);
   }
-  int i;
-  char *output;
-  for (i = 0; i < strlen(commands); i++) {
-    char c = commands[i];
+
+  //Figure out max number of commands and bytes
+  int cmdbytes = strlen(commands);
+  int maxcmds = cmdbytes / 3;
+  char cmds[maxcmds];
+  char *command = NULL;
+  char *space = " ";
+  int i = 0; //Will track which command we're on
+  *command = strtok(commands, space);
+  while (command != NULL ) {
+    cmds[i] = command;
+    i++;
+    *command = strtok(NULL, space);
   }
 }
 
@@ -101,7 +111,7 @@ int
 getfp(char *filename) {
   char *token = " ";
   char *trimmed = strtok(filename, token);
-  int fp = open(trimmed, "O_RDONLY");
+  int fp = open(trimmed, "O_WRONLY | O_CREAT", "S_IWUSR | S_IRUSR");
   return fp;
 }
 
