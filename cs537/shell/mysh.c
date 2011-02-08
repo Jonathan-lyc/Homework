@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/param.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
 
 #define MAXINPUT (513) //512 bytes + null
 #define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
@@ -54,7 +57,7 @@ prompt() {
   }
   char *result = NULL;
   char *scnl = ";\n"; //semicolon/newline separators
-  int fp = NULL; //NULL = STDOUT, anything else is file pointer
+  int *fp = NULL; //NULL = STDOUT, anything else is file pointer
   int background = 0; //0 = foreground, 1 = background
   char *tokptr1, *tokptr2;
 
@@ -68,7 +71,12 @@ prompt() {
       //Begin output redirection handler
       command = strtok_r(command, gt, &tokptr2);
       char *redir = strtok_r(NULL, gt, &tokptr2);
-      fp = getfp(redir);
+      *fp = getfp(redir);
+      //If there was a file pointer error, set output back to STDOUT
+      if (fp < 0) {
+        error(1);
+        fp = 0;
+      }
     }
     //Check for run in background
     char *amp = "&";
@@ -76,7 +84,7 @@ prompt() {
     if (ampexists != NULL) {
       printf("AMP exists");
     }
-    command_handler(command, fp, background);
+    command_handler(command, *fp, background);
     result = strtok_r(NULL, scnl, &tokptr1);
   }
   //Break up on ; into array
@@ -126,7 +134,7 @@ command_handler(char *commands, int fp, int background) {
     }
   }
   else if (strcmp(arg_list[0], "cd") == 0) {
-    int err;
+    int err = 0;
     if (i == 0) {
       printf("here");
 
@@ -143,13 +151,32 @@ command_handler(char *commands, int fp, int background) {
       error(1);
     }
   }
+
+  int rc = fork();
+  if (rc == 0) {
+    //child
+    execvp(arg_list[0], arg_list);
+    //execvp only returns on error
+    error(1);
+  }
+  else if (rc > 0) {
+    //parent
+    wait(NULL);
+  }
+  else {
+    error(1);
+  }
+  //Execvp doesn't return unless there is an error.
+  //error(1);
 }
 
 int
 getfp(char *filename) {
   char *token = " ";
   char *trimmed = strtok(filename, token);
-  int fp = open(trimmed, "O_WRONLY | O_CREAT", "S_IWUSR | S_IRUSR");
+  char *openmode = "O_WRONLY | O_CREAT";
+  char *openrights = "S_IWUSR | S_IRUSR";
+  int fp = open(trimmed, *openmode, *openrights);
   return fp;
 }
 
@@ -157,7 +184,10 @@ getfp(char *filename) {
 void
 error(int cont) {
   char error_message[30] = "An error has occurred\n";
-  write(STDERR_FILENO, error_message, strlen(error_message));
+  int err = write(STDERR_FILENO, error_message, strlen(error_message));
+  if (err < 1) {
+    error(1);
+  }
   if (cont == 0) {
     exit(1);
   }
