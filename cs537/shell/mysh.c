@@ -91,19 +91,14 @@ command_handler(char *commands, int fp, int background) {
   if (fp != 0) {
     printf("File pointer is %d\n", fp);
   }
-
-  //Figure out max number of commands and bytes
-  int cmdbytes = strlen(commands);
-  int maxcmds = cmdbytes / 3;
-  char cmds[maxcmds];
-  char *command = NULL;
-  char *space = " ";
-  int i = 0; //Will track which command we're on
-  *command = strtok(commands, space);
-  while (command != NULL ) {
-    cmds[i] = command;
+  //Build args list.
+  char *arg_list[MAXCOMMANDS];
+  int i=0;
+  arg_list[i]=strtok(commands," ");
+  while(arg_list[i]!=NULL)
+  {
     i++;
-    *command = strtok(NULL, space);
+    arg_list[i]=strtok(NULL," ");
   }
 }
 
