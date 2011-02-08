@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/param.h>
 
 #define MAXINPUT (513) //512 bytes + null
 #define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
@@ -16,7 +17,7 @@ int getfp(char *filename);
 int
 main(int argc, char *argv[]){
   if (argc > 2) {
-    error();
+    error(0);
   }
   //Interactive mode
   if (argc == 1) {
@@ -34,15 +35,14 @@ int
 prompt() {
   char *input = malloc(MAXINPUT);
   if (input == NULL) {
-    error();
-    return 1;
+    error(0);
   }
 
   printf("mysh> ");
   char *a = fgets(input, MAXINPUT, stdin);
   //Check that fgets didn't have an error.
   if (a == NULL) {
-    error();
+    error(1);
   }
   //Take out newline, turn to null terminated string
   if (input[strlen (input) -1] == '\n') {
@@ -91,14 +91,57 @@ command_handler(char *commands, int fp, int background) {
   if (fp != 0) {
     printf("File pointer is %d\n", fp);
   }
+
   //Build args list.
   char *arg_list[MAXCOMMANDS];
-  int i=0;
+  int i=0; //counter
   arg_list[i]=strtok(commands," ");
+
   while(arg_list[i]!=NULL)
   {
     i++;
     arg_list[i]=strtok(NULL," ");
+  }
+
+  //Add required null at end of command for execvp
+  arg_list[i] = NULL;
+  i--;
+  //Builtin command processing
+  if (strcmp(arg_list[0], "exit") == 0) {
+    if (i == 0) {
+      exit(0);
+    }
+    else {
+      error(1);
+    }
+  }
+  else if (strcmp(arg_list[0], "pwd") == 0) {
+    if (i == 0) {
+      char *pwd;
+      pwd = getcwd(pwd, MAXPATHLEN);
+      printf("%s\n", pwd);
+    }
+    else {
+      error(1);
+    }
+  }
+  else if (strcmp(arg_list[0], "cd") == 0) {
+    int err;
+    if (i == 0) {
+      printf("here");
+
+      printf("home is %s", getenv("HOME"));
+      err = chdir(getenv("HOME"));
+    }
+    else if (i == 1) {
+      err = chdir(arg_list[1]);
+    }
+    else {
+      error(1);
+    }
+    if (err != 0) {
+      error(1);
+    }
   }
 }
 
@@ -110,11 +153,14 @@ getfp(char *filename) {
   return fp;
 }
 
+// If cont is 0, the shell will exit after printing error message.
 void
-error() {
+error(int cont) {
   char error_message[30] = "An error has occurred\n";
   write(STDERR_FILENO, error_message, strlen(error_message));
-  exit(1);
+  if (cont == 0) {
+    exit(1);
+  }
 }
 
 void
