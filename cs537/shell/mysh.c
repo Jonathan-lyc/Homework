@@ -15,7 +15,7 @@
 int prompt();
 void error();
 void batch();
-void command_handler(char *commands, int fp, int background);
+void command_handler(char *commands, int fp);
 int getfp(char *filename);
 int
 main(int argc, char *argv[]){
@@ -56,21 +56,18 @@ prompt() {
     printf("\nYou typed: %s\n", input);
   }
   char *result = NULL;
-  char *scnl = ";\n"; //semicolon/newline separators
-  int *fp = NULL; //NULL = STDOUT, anything else is file pointer
-  int background = 0; //0 = foreground, 1 = background
+  int *fp = 0; //0 = STDOUT, anything else is file pointer
   char *tokptr1, *tokptr2;
 
-  result = strtok_r(input, scnl, &tokptr1);
+  result = strtok_r(input, ";\n", &tokptr1);
   while (result != NULL ) {
     //Check for output redirection
     char *command = strdup(result);
-    char *gt = ">";
-    char *gtexists = strpbrk(command, gt);
+    char *gtexists = strpbrk(command, ">");
     if (gtexists != NULL) {
       //Begin output redirection handler
-      command = strtok_r(command, gt, &tokptr2);
-      char *redir = strtok_r(NULL, gt, &tokptr2);
+      command = strtok_r(command, ">", &tokptr2);
+      char *redir = strtok_r(NULL, ">", &tokptr2);
       *fp = getfp(redir);
       //If there was a file pointer error, set output back to STDOUT
       if (fp < 0) {
@@ -78,14 +75,9 @@ prompt() {
         fp = 0;
       }
     }
-    //Check for run in background
-    char *amp = "&";
-    char *ampexists = strpbrk(command, amp);
-    if (ampexists != NULL) {
-      printf("AMP exists");
-    }
-    command_handler(command, *fp, background);
-    result = strtok_r(NULL, scnl, &tokptr1);
+    
+    command_handler(command, fp);
+    result = strtok_r(NULL, ";\n", &tokptr1);
   }
   //Break up on ; into array
   //Go through each complete command, break into args
@@ -94,21 +86,33 @@ prompt() {
 }
 
 void
-command_handler(char *commands, int fp, int background) {
+command_handler(char *commands, int fp) {
   printf("Your command is: %s\n", commands);
   if (fp != 0) {
     printf("File pointer is %d\n", fp);
   }
-
+  
+  //REDIR EXAMPLE
+  //http://www.cs.loyola.edu/~jglenn/702/S2005/Examples/dup2.html
+  
+  char *tokptr1, *tokptr2;
+//Check for run in background
+  char *ampexists = strpbrk(commands, "&");
+  int background = 0; //0 = foreground, 1 = background
+  if (ampexists != NULL) {
+	commands = strtok_r(commands, "&", &tokptr1);
+	background = 1;
+  }
+  
   //Build args list.
   char *arg_list[MAXCOMMANDS];
   int i=0; //counter
-  arg_list[i]=strtok(commands," ");
+  arg_list[i]=strtok_r(commands," ", &tokptr2);
 
   while(arg_list[i]!=NULL)
   {
     i++;
-    arg_list[i]=strtok(NULL," ");
+    arg_list[i]=strtok_r(NULL," ", &tokptr2);
   }
 
   //Add required null at end of command for execvp
@@ -128,6 +132,7 @@ command_handler(char *commands, int fp, int background) {
       char *pwd;
       pwd = getcwd(pwd, MAXPATHLEN);
       printf("%s\n", pwd);
+	  return;
     }
     else {
       error(1);
@@ -136,10 +141,8 @@ command_handler(char *commands, int fp, int background) {
   else if (strcmp(arg_list[0], "cd") == 0) {
     int err = 0;
     if (i == 0) {
-      printf("here");
-
-      printf("home is %s", getenv("HOME"));
       err = chdir(getenv("HOME"));
+	  return;
     }
     else if (i == 1) {
       err = chdir(arg_list[1]);
@@ -150,8 +153,13 @@ command_handler(char *commands, int fp, int background) {
     if (err != 0) {
       error(1);
     }
+    return;
   }
-
+  else if (strcmp(arg_list[0], "waitall") == 0) {
+	printf("Waitall..");
+	return;
+  }
+ 
   int rc = fork();
   if (rc == 0) {
     //child
@@ -161,13 +169,15 @@ command_handler(char *commands, int fp, int background) {
   }
   else if (rc > 0) {
     //parent
-    wait(NULL);
+    if (background == 0) {
+      wait(NULL);
+	}
   }
   else {
     error(1);
   }
   //Execvp doesn't return unless there is an error.
-  //error(1);
+  error(1);
 }
 
 int
