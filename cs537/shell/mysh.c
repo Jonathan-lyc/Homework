@@ -77,9 +77,6 @@ parse(char *input){
       char *redir = strtok_r(NULL, ">", &tokptr2);
       fp = getfp(redir);
       //If there was a file pointer error, set output back to STDOUT
-      if (fp < 0) {
-        error(1);
-        fp = 0;
       }
     }
 
@@ -101,7 +98,7 @@ command_handler(char *commands, int fp) {
   //printf("Your command is: %s\n", commands);
 
   char *tokptr1, *tokptr2;
-//Check for run in background
+  //Check for run in background
   char *ampexists = strpbrk(commands, "&");
   int background = 0; //0 = foreground, 1 = background
   if (ampexists != NULL) {
@@ -164,7 +161,7 @@ command_handler(char *commands, int fp) {
     return;
   }
   else if (strcmp(arg_list[0], "waitall") == 0) {
-	wait(NULL);
+        while (wait(NULL) != -1);
 	return;
   }
 
@@ -189,11 +186,17 @@ command_handler(char *commands, int fp) {
 int
 getfp(char *filename) {
   char *token = " ";
-  char *trimmed = strtok(filename, token);
+  char *tokptr;
+  char *trimmed = strtok_r(filename, token, &tokptr);
+  if (strtok_r(NULL, ">", &tokptr) != NULL) {
+    error(1);
+    return -1;
+  }
+
   close(STDOUT_FILENO);
   int fp = open(trimmed, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
   if (fp < 0) {
-    error(0);
+    error(2);
   }
   return fp;
 }
