@@ -80,7 +80,7 @@ parse(char *input){
         fp = 0;
       }
     }
-    
+
     command_handler(command, fp);
     result = strtok_r(NULL, ";\n", &tokptr1);
   }
@@ -92,14 +92,14 @@ parse(char *input){
 
 void
 command_handler(char *commands, int fp) {
-  printf("Your command is: %s\n", commands);
+  //printf("Your command is: %s\n", commands);
   if (fp != 0) {
     printf("File pointer is %d\n", fp);
   }
-  
+
   //REDIR EXAMPLE
   //http://www.cs.loyola.edu/~jglenn/702/S2005/Examples/dup2.html
-  
+
   char *tokptr1, *tokptr2;
 //Check for run in background
   char *ampexists = strpbrk(commands, "&");
@@ -108,7 +108,7 @@ command_handler(char *commands, int fp) {
 	commands = strtok_r(commands, "&", &tokptr1);
 	background = 1;
   }
-  
+
   //Build args list.
   char *arg_list[MAXCOMMANDS];
   int i=0; //counter
@@ -164,7 +164,7 @@ command_handler(char *commands, int fp) {
 	wait(NULL);
 	return;
   }
- 
+
   int rc = fork();
   if (rc == 0) {
     //child
@@ -187,9 +187,12 @@ int
 getfp(char *filename) {
   char *token = " ";
   char *trimmed = strtok(filename, token);
-  char *openmode = "O_WRONLY | O_CREAT";
-  char *openrights = "S_IWUSR | S_IRUSR";
+  char *openmode = O_WRONLY | O_CREAT | O_TRUNC;
+  char *openrights = S_IWUSR | S_IRUSR;
   int fp = open(trimmed, *openmode, *openrights);
+  if (fp < 0) {
+    error(0);
+  }
   return fp;
 }
 
