@@ -212,6 +212,7 @@ batch(char *batchfile) {
   file = fopen(batchfile, "r");
   char input[MAXINPUT];
   while(fgets(input, MAXINPUT, file) != 0) {
+	write(STDOUT_FILENO, input, strlen(input));
     parse(input);
   }
 }
