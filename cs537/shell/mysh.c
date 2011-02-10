@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 
-#define MAXINPUT (513) //512 bytes + null
+#define MAXINPUT (514) //512 bytes + null
 #define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
 #define DEBUG (1)
 
@@ -18,7 +18,6 @@ void batch(char *batchfile);
 void parse();
 void command_handler(char *commands, int fp);
 int getfp(char *filename);
-
 
 int
 main(int argc, char *argv[]){
@@ -50,7 +49,7 @@ prompt() {
   if (a == NULL) {
     error(1);
   }
-  parse(input); 
+  parse(input);
 }
 
 void
@@ -63,17 +62,20 @@ parse(char *input){
   char *result = NULL;
   int *fp = 0; //0 = STDOUT, anything else is file pointer
   char *tokptr1, *tokptr2;
+  int stdoutcopy = 0;
+  char *gtexists = NULL;
 
   result = strtok_r(input, ";\n", &tokptr1);
   while (result != NULL ) {
     //Check for output redirection
     char *command = strdup(result);
-    char *gtexists = strpbrk(command, ">");
+    gtexists = strpbrk(command, ">");
     if (gtexists != NULL) {
       //Begin output redirection handler
+      dup2(STDOUT_FILENO, stdoutcopy);
       command = strtok_r(command, ">", &tokptr2);
       char *redir = strtok_r(NULL, ">", &tokptr2);
-      *fp = getfp(redir);
+      fp = getfp(redir);
       //If there was a file pointer error, set output back to STDOUT
       if (fp < 0) {
         error(1);
@@ -82,6 +84,10 @@ parse(char *input){
     }
 
     command_handler(command, fp);
+    if (gtexists != NULL) { 
+      close(fp);
+      dup2(stdoutcopy, STDOUT_FILENO);
+    }
     result = strtok_r(NULL, ";\n", &tokptr1);
   }
   //Break up on ; into array
@@ -93,12 +99,6 @@ parse(char *input){
 void
 command_handler(char *commands, int fp) {
   //printf("Your command is: %s\n", commands);
-  if (fp != 0) {
-    printf("File pointer is %d\n", fp);
-  }
-
-  //REDIR EXAMPLE
-  //http://www.cs.loyola.edu/~jglenn/702/S2005/Examples/dup2.html
 
   char *tokptr1, *tokptr2;
 //Check for run in background
@@ -129,18 +129,21 @@ command_handler(char *commands, int fp) {
       exit(0);
     }
     else {
-      error(1);
+      error(2);
     }
   }
   else if (strcmp(arg_list[0], "pwd") == 0) {
     if (i == 0) {
       char *pwd;
       pwd = getcwd(pwd, MAXPATHLEN);
-      printf("%s\n", pwd);
-	  return;
+      int len = strlen(pwd);
+      pwd[len] = '\n';
+      pwd[len + 1] = '\0';
+      write(STDOUT_FILENO, pwd, strlen(pwd));
+      return;
     }
     else {
-      error(1);
+      error(2);
     }
   }
   else if (strcmp(arg_list[0], "cd") == 0) {
@@ -187,9 +190,8 @@ int
 getfp(char *filename) {
   char *token = " ";
   char *trimmed = strtok(filename, token);
-  char *openmode = O_WRONLY | O_CREAT | O_TRUNC;
-  char *openrights = S_IWUSR | S_IRUSR;
-  int fp = open(trimmed, *openmode, *openrights);
+  close(STDOUT_FILENO);
+  int fp = open(trimmed, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
   if (fp < 0) {
     error(0);
   }
@@ -207,15 +209,21 @@ error(int cont) {
   if (cont == 0) {
     exit(1);
   }
+  else if (cont == 2){
+    exit(0);
+  }
 }
 
 void
 batch(char *batchfile) {
   FILE *file;
   file = fopen(batchfile, "r");
+  if (file == NULL) {
+    error(0);
+  }
   char input[MAXINPUT];
   while(fgets(input, MAXINPUT, file) != 0) {
 	write(STDOUT_FILENO, input, strlen(input));
-    parse(input);
+  parse(input);
   }
 }
