@@ -14,9 +14,12 @@
 
 int prompt();
 void error();
-void batch();
+void batch(char *batchfile);
+void parse();
 void command_handler(char *commands, int fp);
 int getfp(char *filename);
+
+
 int
 main(int argc, char *argv[]){
   if (argc > 2) {
@@ -29,7 +32,7 @@ main(int argc, char *argv[]){
     }
   }
   if (argc == 2) {
-    batch();
+    batch(argv[1]);
   }
   return 0;
 }
@@ -47,14 +50,16 @@ prompt() {
   if (a == NULL) {
     error(1);
   }
+  parse(input); 
+}
+
+void
+parse(char *input){
   //Take out newline, turn to null terminated string
   if (input[strlen (input) -1] == '\n') {
     input[strlen (input) - 1] = '\0';
   }
 
-  if (DEBUG == 2) {
-    printf("\nYou typed: %s\n", input);
-  }
   char *result = NULL;
   int *fp = 0; //0 = STDOUT, anything else is file pointer
   char *tokptr1, *tokptr2;
@@ -156,7 +161,7 @@ command_handler(char *commands, int fp) {
     return;
   }
   else if (strcmp(arg_list[0], "waitall") == 0) {
-	printf("Waitall..");
+	wait(NULL);
 	return;
   }
  
@@ -176,8 +181,6 @@ command_handler(char *commands, int fp) {
   else {
     error(1);
   }
-  //Execvp doesn't return unless there is an error.
-  error(1);
 }
 
 int
@@ -204,7 +207,11 @@ error(int cont) {
 }
 
 void
-batch() {
-  printf("Was batch mode fun?\n");
-  exit(1);
+batch(char *batchfile) {
+  FILE *file;
+  file = fopen(batchfile, "r");
+  char input[MAXINPUT];
+  while(fgets(input, MAXINPUT, file) != 0) {
+    parse(input);
+  }
 }
