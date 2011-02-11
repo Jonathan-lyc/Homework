@@ -17,7 +17,7 @@ int prompt();
 void error();
 void batch(char *batchfile);
 void parse();
-void command_handler(char *commands, int fp);
+void command_handler(char *commands, int fp, int background);
 int getfp(char *filename);
 
 int
@@ -71,14 +71,21 @@ parse(char *input){
 
   char *result = NULL;
   int *fp = 1; //0 = STDOUT, anything above 2 is file pointer
-  char *tokptr1, *tokptr2, *tokptr3;
+  char *tokptr1, *tokptr2, *tokptr3, tokptr4;
   int stdoutcopy = 0;
   char *gtexists = NULL;
 
   result = strtok_r(input, ";\n", &tokptr1);
   while (result != NULL ) {
-    //Check for output redirection
     char *command = strdup(result);
+    //Check for run in background
+    char *ampexists = strpbrk(command, "&");
+    int background = 0; //0 = foreground, 1 = background
+    if (ampexists != NULL) {
+      command = strtok_r(command, "&", &tokptr4);
+      background = 1;
+    }
+    //Check for output redirection
     gtexists = strpbrk(command, ">");
     if (gtexists != NULL) {
       //Begin output redirection handler
@@ -92,7 +99,7 @@ parse(char *input){
       }
 
       close(STDOUT_FILENO);
-      int fp = open(trimmed, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+      int fp = open(trimmed, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
       if (fp < 0) {
         error(2);
       }
@@ -100,7 +107,7 @@ parse(char *input){
         error(1);
       }
     } 
-    command_handler(command, fp);
+    command_handler(command, fp, background);
     if (gtexists != NULL) {
       close(fp);
       dup2(stdoutcopy, STDOUT_FILENO);
@@ -114,18 +121,10 @@ parse(char *input){
 }
 
 void
-command_handler(char *commands, int fp) {
+command_handler(char *commands, int fp, int background) {
   //printf("Your command is: %s\n", commands);
 
-  char *tokptr1, *tokptr2;
-  //Check for run in background
-  char *ampexists = strpbrk(commands, "&");
-  int background = 0; //0 = foreground, 1 = background
-  if (ampexists != NULL) {
-	commands = strtok_r(commands, "&", &tokptr1);
-	background = 1;
-  }
-
+  char *tokptr2;
   //Build args list.
   char *arg_list[MAXCOMMANDS];
   int i=0; //counter
