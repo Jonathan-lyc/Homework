@@ -15,7 +15,6 @@
 
 int prompt();
 void error();
-void batch(char *batchfile);
 void parse();
 void command_handler(char *commands, int fp, int background);
 int getfp(char *filename);
@@ -33,7 +32,28 @@ main(int argc, char *argv[]){
     }
   }
   if (argc == 2) {
-    batch(argv[1]);
+    FILE *file;
+    file = fopen(argv[1], "r");
+    if (file == NULL) {
+      error(0);
+    }
+    char input[MAXINPUT];
+    while(fgets(input, MAXINPUT, file) != 0) {
+      write(STDOUT_FILENO, input, strlen(input));
+      if (strpbrk(input, "\n") == NULL) {
+        error(1);
+      }
+      else {
+        if (input == NULL || input == EOF) {
+          return;   
+        }
+        if (strpbrk(input, "\n") == NULL) {
+          error(1);
+          return;
+        }
+      parse(input);
+      }
+    }
   }
   return 0;
 }
@@ -51,9 +71,9 @@ prompt() {
   if (a == NULL) {
     error(1);
   }
-//   if (input == EOF) {
-//     return 1;   
-//   }
+  if (input == EOF) {
+    return 1;   
+  }
   if (strpbrk(input, "\n") == NULL) {
     error(1);
     return 1;
@@ -122,20 +142,23 @@ parse(char *input){
 
 void
 command_handler(char *commands, int fp, int background) {
-  //printf("Your command is: %s\n", commands);
-
   char *tokptr2;
   //Build args list.
   char *arg_list[MAXCOMMANDS];
   int i=0; //counter
   arg_list[i]=strtok_r(commands," ", &tokptr2);
-
-  while(arg_list[i]!=NULL)
+  
+  // Check if command is all spaces
+  if (arg_list[0] == NULL) {
+    return;   
+  }
+  
+  while(arg_list[i] != NULL)
   {
     i++;
     arg_list[i]=strtok_r(NULL," ", &tokptr2);
   }
-
+  
   //Add required null at end of command for execvp
   arg_list[i] = NULL;
   i--;
@@ -223,31 +246,5 @@ error(int cont) {
   }
   else if (cont == 3){
     printf("this");
-  }
-}
-
-void
-batch(char *batchfile) {
-  FILE *file;
-  file = fopen(batchfile, "r");
-  if (file == NULL) {
-    error(0);
-  }
-  char input[MAXINPUT];
-  while(fgets(input, MAXINPUT, file) != 0) {
-	  write(STDOUT_FILENO, input, strlen(input));
-    if (strpbrk(input, "\n") == NULL) {
-      error(1);
-    }
-    else {
-      if (input == NULL || input == EOF) {
-        return;   
-      }
-      if (strpbrk(input, "\n") == NULL) {
-        error(1);
-        return;
-      }
-      parse(input);
-    }
   }
 }
