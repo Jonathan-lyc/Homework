@@ -13,7 +13,7 @@
 #define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
 #define DEBUG (0)
 
-void prompt();
+int prompt();
 void error();
 void batch(char *batchfile);
 void parse();
@@ -27,8 +27,9 @@ main(int argc, char *argv[]){
   }
   //Interactive mode
   if (argc == 1) {
-    while (1) {
-      prompt();
+    int ret = 0;
+    while (ret == 0) {
+      ret = prompt();
     }
   }
   if (argc == 2) {
@@ -37,7 +38,7 @@ main(int argc, char *argv[]){
   return 0;
 }
 
-void
+int
 prompt() {
   char *input = malloc(MAXINPUT);
   if (input == NULL) {
@@ -50,14 +51,15 @@ prompt() {
   if (a == NULL) {
     error(1);
   }
-  if (input == NULL) {
-    return;   
-  }
+//   if (input == EOF) {
+//     return 1;   
+//   }
   if (strpbrk(input, "\n") == NULL) {
     error(1);
-    return;
+    return 1;
   }
   parse(input);
+  return 0;
 }
 
 void
@@ -68,8 +70,8 @@ parse(char *input){
   }
 
   char *result = NULL;
-  int *fp = 0; //0 = STDOUT, anything else is file pointer
-  char *tokptr1, *tokptr2;
+  int *fp = 1; //0 = STDOUT, anything above 2 is file pointer
+  char *tokptr1, *tokptr2, *tokptr3;
   int stdoutcopy = 0;
   char *gtexists = NULL;
 
@@ -82,14 +84,22 @@ parse(char *input){
       //Begin output redirection handler
       dup2(STDOUT_FILENO, stdoutcopy);
       command = strtok_r(command, ">", &tokptr2);
+      
       char *redir = strtok_r(NULL, ">", &tokptr2);
-      fp = getfp(redir);
+      char *trimmed = strtok_r(redir, " ", &tokptr3);
+      if (strtok_r(NULL, ">", &tokptr3) != NULL) {
+        error(1);
+      }
+
+      close(STDOUT_FILENO);
+      int fp = open(trimmed, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+      if (fp < 0) {
+        error(2);
+      }
       if (fp < 0) {
         error(1);
-        return 0;   
       }
-    }
-    
+    } 
     command_handler(command, fp);
     if (gtexists != NULL) {
       close(fp);
@@ -97,7 +107,9 @@ parse(char *input){
     }
     result = strtok_r(NULL, ";\n", &tokptr1);
   }
-  close(fp);
+  if (fp != 1) {
+    close(fp);
+  }
   return 0;
 }
 
@@ -196,24 +208,6 @@ command_handler(char *commands, int fp) {
   }
 }
 
-int
-getfp(char *filename) {
-  char *token = " ";
-  char *tokptr;
-  char *trimmed = strtok_r(filename, token, &tokptr);
-  if (strtok_r(NULL, ">", &tokptr) != NULL) {
-    error(1);
-    return -1;
-  }
-
-  close(STDOUT_FILENO);
-  int fp = open(trimmed, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
-  if (fp < 0) {
-    error(2);
-  }
-  return fp;
-}
-
 // If cont is 0, the shell will exit after printing error message.
 void
 error(int cont) {
@@ -227,6 +221,9 @@ error(int cont) {
   }
   else if (cont == 2){
     exit(0);
+  }
+  else if (cont == 3){
+    printf("this");
   }
 }
 
@@ -244,7 +241,7 @@ batch(char *batchfile) {
       error(1);
     }
     else {
-      if (input == NULL) {
+      if (input == NULL || input == EOF) {
         return;   
       }
       if (strpbrk(input, "\n") == NULL) {
