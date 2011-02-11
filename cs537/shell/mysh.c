@@ -1,17 +1,17 @@
+#include <assert.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
-#include <assert.h>
+#include <unistd.h>
 
 #define MAXINPUT (514) //512 bytes + null
 #define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
-#define DEBUG (1)
+#define DEBUG (0)
 
 void prompt();
 void error();
@@ -50,6 +50,9 @@ prompt() {
   if (a == NULL) {
     error(1);
   }
+  if (input == NULL) {
+    return;   
+  }
   if (strpbrk(input, "\n") == NULL) {
     error(1);
     return;
@@ -81,6 +84,10 @@ parse(char *input){
       command = strtok_r(command, ">", &tokptr2);
       char *redir = strtok_r(NULL, ">", &tokptr2);
       fp = getfp(redir);
+      if (fp < 0) {
+        error(1);
+        return 0;   
+      }
     }
     
     command_handler(command, fp);
@@ -90,6 +97,7 @@ parse(char *input){
     }
     result = strtok_r(NULL, ";\n", &tokptr1);
   }
+  close(fp);
   return 0;
 }
 
@@ -161,8 +169,13 @@ command_handler(char *commands, int fp) {
     return;
   }
   else if (strcmp(arg_list[0], "waitall") == 0) {
-        while (wait(NULL) != -1);
-	return;
+    if (i == 0) {
+      while (wait(NULL) != -1);
+      return;
+    }
+    else {
+      error(2);   
+    }
   }
 
   int rc = fork();
@@ -231,6 +244,13 @@ batch(char *batchfile) {
       error(1);
     }
     else {
+      if (input == NULL) {
+        return;   
+      }
+      if (strpbrk(input, "\n") == NULL) {
+        error(1);
+        return;
+      }
       parse(input);
     }
   }
