@@ -7,12 +7,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <assert.h>
 
 #define MAXINPUT (514) //512 bytes + null
 #define MAXCOMMANDS (171) //Should be MAXINPUT/3 (2 letter cmds + ;)
 #define DEBUG (1)
 
-int prompt();
+void prompt();
 void error();
 void batch(char *batchfile);
 void parse();
@@ -36,7 +37,7 @@ main(int argc, char *argv[]){
   return 0;
 }
 
-int
+void
 prompt() {
   char *input = malloc(MAXINPUT);
   if (input == NULL) {
@@ -48,6 +49,10 @@ prompt() {
   //Check that fgets didn't have an error.
   if (a == NULL) {
     error(1);
+  }
+  if (strpbrk(input, "\n") == NULL) {
+    error(1);
+    return;
   }
   parse(input);
 }
@@ -76,20 +81,15 @@ parse(char *input){
       command = strtok_r(command, ">", &tokptr2);
       char *redir = strtok_r(NULL, ">", &tokptr2);
       fp = getfp(redir);
-      //If there was a file pointer error, set output back to STDOUT
-      }
     }
-
+    
     command_handler(command, fp);
-    if (gtexists != NULL) { 
+    if (gtexists != NULL) {
       close(fp);
       dup2(stdoutcopy, STDOUT_FILENO);
     }
     result = strtok_r(NULL, ";\n", &tokptr1);
   }
-  //Break up on ; into array
-  //Go through each complete command, break into args
-  //Run command
   return 0;
 }
 
@@ -226,7 +226,12 @@ batch(char *batchfile) {
   }
   char input[MAXINPUT];
   while(fgets(input, MAXINPUT, file) != 0) {
-	write(STDOUT_FILENO, input, strlen(input));
-  parse(input);
+	  write(STDOUT_FILENO, input, strlen(input));
+    if (strpbrk(input, "\n") == NULL) {
+      error(1);
+    }
+    else {
+      parse(input);
+    }
   }
 }
