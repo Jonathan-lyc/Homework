@@ -1,0 +1,69 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include "mem.h"
+
+int dbg = -1;
+int merror;
+
+struct __list_t {
+  int size;
+  void *next;
+  void *prev;
+  int free; //0 = free, 1 = used
+};
+
+typedef struct __list_t list_t;
+
+list_t *head;
+
+int Mem_Init(int sizeOfRegion, int debug) {
+  if (dbg == -1 || sizeOfRegion < 1) {
+    merror = E_BAD_ARGS;
+    return -1;
+  }
+
+  dbg = debug;
+
+  //Open /dev/zero for mmap
+  int fd = open("/dev/zero", O_RDWR);
+
+  void *ptr = mmap(NULL, sizeOfRegion, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, fd, 0);
+  if (ptr == MAP_FAILED) {
+    perror("mmap");
+    return -1;
+  }
+
+  list_t freespace = {sizeOfRegion - (sizeof(list_t) * 2), NULL, head, 0};
+
+  head = 
+  head = (list_t *) ptr;
+  head->size = sizeOfRegion;
+  head->next = &freespace;
+  head->prev = NULL;
+  head->free = 1;
+
+  return 0;
+}
+
+void *Mem_Alloc(int size) {
+  return;
+}
+
+int Mem_Free(void *ptr) {
+  return 0;
+}
+
+void Mem_Dump() {
+  printf("dump:\n");
+  list_t *tmp = head;
+  while (tmp) {
+    printf("  size:%d\n", tmp->size);
+    tmp = tmp->next;
+  }
+  return;
+}
