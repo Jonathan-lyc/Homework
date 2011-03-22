@@ -10,3 +10,9 @@ libmem.so: mem.c mem.h
 
 clean:
 	rm -f myprogram libmem.so
+
+debug:
+	gcc -m32 -c -fpic mem.c -g
+	gcc -m32 -shared -o libmem.so mem.o
+
+	gcc -m32 -lmem -L. -Wall -o myprogram mymain.c -g
