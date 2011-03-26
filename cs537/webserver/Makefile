@@ -2,7 +2,7 @@
 # To compile, type "make" or make "all"
 # To remove files, type "make clean"
 #
-OBJS = server.o request.o cs537.o client.o
+OBJS = server.o request.o cs537.o client.o shortcuts.o
 TARGET = server
 
 CC = gcc
@@ -15,7 +15,7 @@ LIBS = -lpthread
 all: server client output.cgi
 
 server: server.o request.o cs537.o
-	$(CC) $(CFLAGS) -o server server.o request.o cs537.o $(LIBS)
+	$(CC) $(CFLAGS) -o server shortcuts.o server.o request.o cs537.o $(LIBS)
 
 client: client.o cs537.o
 	$(CC) $(CFLAGS) -o client client.o cs537.o
