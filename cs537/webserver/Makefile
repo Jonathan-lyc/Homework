@@ -14,7 +14,7 @@ LIBS = -lpthread
 
 all: server client output.cgi
 
-server: server.o request.o cs537.o
+server: server.o request.o cs537.o shortcuts.o
 	$(CC) $(CFLAGS) -o server shortcuts.o server.o request.o cs537.o $(LIBS)
 
 client: client.o cs537.o
