@@ -132,14 +132,20 @@ int get() {
 }
 
 void consumer(int arg) {
-	Mutex_lock(&lock);
-	while(buffersize == 0){
-		Cond_wait(&fill, &lock);
+	while(1) {
+	  fprintf(stderr, "consumer start\n");
+	  Mutex_lock(&lock);
+	  while(buffersize == 0){
+		  fprintf(stderr, "consumer wait\n");
+		  Cond_wait(&fill, &lock);
+	  }
+	  fprintf(stderr, "consumer awake\n");
+	  int connfd = get();
+	  requestHandle(connfd);
+	  Cond_signal(&empty);
+	  Mutex_unlock(&lock);
+	  fprintf(stderr, "consumer end\n");
 	}
-	int connfd = get();
-	requestHandle(connfd);
-	Cond_signal(&empty);
-	Mutex_unlock(&lock);
 }
 int main(int argc, char *argv[])
 {
@@ -176,18 +182,25 @@ int main(int argc, char *argv[])
     // Add in check for the conditional variables here.
 	// This is the producer thread. it will sleep when buffer is full. 
     while (1) {
+		fprintf(stderr, "producer start\n");
         Mutex_lock(&lock);
 		while(buffersize == maxbuffers) {
+			fprintf(stderr, "producer wait\n");
 			Cond_wait(&empty, &lock);
 		}
+		Mutex_unlock(&lock);
+		fprintf(stderr, "producer awake\n");
 		clientlen = sizeof(clientaddr);
-        connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
+        connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen); //Thread blocks here, waiting for connections. Might need to sleep here?
+		Mutex_lock(&lock);
 		if (put(connfd) != 0) {
 			fprintf(stderr, "Put failed");
 		}
 		Close(connfd);       
+		fprintf(stderr, "signalling consumer\n");
 		Cond_signal(&fill);
 		Mutex_unlock(&lock);
+		fprintf(stderr, "producer end\n");
     }
 
 }
