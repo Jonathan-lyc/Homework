@@ -14,8 +14,15 @@
 //
 
 // CS537: Parse the new arguments too
+pthread_mutex_t lock;
+pthread_cond_t empty;
+pthread_cond_t fill;
 int schedalg;
-int epoch = 5; // Only used if scheduler is SFF-BS 
+int epoch; // Only used if scheduler is SFF-BS 
+int buffersize = 0;
+int maxbuffers;
+int *buffer;
+
 
 void usage(char *argv[]) {
     fprintf(stderr, "Usage: %s <port> <threads> <buffers> <scheduler>\n", argv[0]);
@@ -24,7 +31,8 @@ void usage(char *argv[]) {
 
 void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 {
-    if (argc != 5 || argc != 6) {
+    if (argc < 5 || argc > 6) {
+	  
 	  usage(argv);
 	}
     *port = atoi(argv[1]);
@@ -36,10 +44,12 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
         usage(argv);
 	}
     *buffers = atoi(argv[3]);
+	maxbuffers = atoi(argv[3]);
     if (*buffers < 1) {
         usage(argv);
 	}
     // FIFO = 0, SFF = 1, SFF-BS = 2
+    
     if (strcmp(argv[4], "FIFO") == 0) {
         schedalg = 0;
 		if (argc != 5) {
@@ -56,6 +66,7 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 	    if (argc != 6) {
 			usage(argv);
 		}
+		epoch = atoi(argv[5]);
 		schedalg = 2; 
 	}
 	else {
@@ -63,15 +74,47 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 	}
 }
 
-// Queue get/put
-void put (int fd) {
-	printf("Put worked");
+// Queue put
+// Returns 0 if worked, -1 if full
+int put (int  fd) {
+	if (schedalg == 0) {
+		if (buffersize < maxbuffers) {
+			buffer[buffersize] = dup(fd);
+			buffersize++;
+			return 0;
+		}
+		else {
+			return -1;
+		}
+	}
+	// Smallest File First
+	else if (schedalg == 1) {
+	    return 0;
+	}
+	// Smallest File First with Bounded Starvation
+	else if (schedalg == 2) {
+	    return 0; 
+	}
+	else {
+	    printf("schedalg not within valid range of 0 - 2");
+	    exit(3);
+	}
+	return 0;
 }
 
-int get () {
+// Queue get
+// Return -1 if nothing left, else returns fd
+int get() {
 	// FIFO
 	if (schedalg == 0) {
-	   return 0;
+	   if (buffersize == 0) {
+		  return -1;
+	   }
+	   else {
+		  buffersize--;
+		  int fd = dup(buffer[buffersize]);
+		  return fd;
+	   }
 	}
 	// Smallest File First
 	else if (schedalg == 1) {
@@ -85,10 +128,18 @@ int get () {
 	  printf("schedalg not within valid range of 0 - 2");
 	  exit(3);
 	}
+	return 0;
 }
 
-void *consumer(int arg) {
-	printf("%d", arg);
+void consumer(int arg) {
+	Mutex_lock(&lock);
+	while(buffersize == 0){
+		Cond_wait(&fill, &lock);
+	}
+	int connfd = get();
+	requestHandle(connfd);
+	Cond_signal(&empty);
+	Mutex_unlock(&lock);
 }
 int main(int argc, char *argv[])
 {
@@ -98,39 +149,45 @@ int main(int argc, char *argv[])
     getargs(&port, &threads, &buffers, argc, argv);
     
 	//Buffers incoming connections
-	int *buffer = (int *) malloc(buffers * sizeof(int)); 
+	buffer = (int *) malloc(buffers * sizeof(int)); 
 	if (buffer == NULL) {
 	  // Malloc failed, must be out of memory.
 	  printf("Malloc failed");
 	  exit(2);
 	}
 	
+	// Initializations
+	Mutex_init(&lock);
+	Cond_init(&empty);
+	Cond_init(&fill);
+	
 	// cid will be the container for threads
 	pthread_t pid, cid[threads];
-	int i;
-	for (i = 0; i < threads; i++) {
-		Pthread_create(&cid[i], consumer);
-	}
-	
 	
     // 
     // CS537: Create thread pool of consumers
     //
+	int i;
+	for (i = 0; i < threads; i++) {
+		Pthread_create(&cid[i], consumer);
+	}
     listenfd = Open_listenfd(port);
 
     // Add in check for the conditional variables here.
 	// This is the producer thread. it will sleep when buffer is full. 
     while (1) {
-        clientlen = sizeof(clientaddr);
+        Mutex_lock(&lock);
+		while(buffersize == maxbuffers) {
+			Cond_wait(&empty, &lock);
+		}
+		clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
-        //
-        // CS537: In general, don't handle the request in the main thread.
-        // Save the relevant info in a buffer and have one of the worker threads
-        // do the work.
-        //
-        requestHandle(connfd);
-
-        Close(connfd);
+		if (put(connfd) != 0) {
+			fprintf(stderr, "Put failed");
+		}
+		Close(connfd);       
+		Cond_signal(&fill);
+		Mutex_unlock(&lock);
     }
 
 }

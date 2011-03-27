@@ -107,12 +107,12 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs)
     sprintf(buf, "%s Server: Tiny Web Server\r\n", buf);
     
     /* CS537: Your statistics go here -- fill in the 0's with something useful! */
-    sprintf(buf, "%s Stat-req-arrival: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-req-dispatch: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-id: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-count: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-static: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-dynamic: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-id: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-count: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-static: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, 0);
     
     Rio_writen(fd, buf, strlen(buf));
     
@@ -156,20 +156,20 @@ void requestServeStatic(int fd, char *filename, int filesize)
     
     
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
-    sprintf(buf, "%s Server: CS537 Web Server\r\n", buf);
+    sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
     
     // CS537: Your statistics go here -- fill in the 0's with something useful!
-    sprintf(buf, "%s Stat-req-arrival: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-req-dispatch: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-req-read: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-req-complete: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-id: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-count: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-static: %d\r\n", buf, 0);
-    sprintf(buf, "%s Stat-thread-dynamic: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-req-read: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-req-complete: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-id: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-count: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-static: %d\r\n", buf, 0);
+    sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, 0);
     
-    sprintf(buf, "%s Content-Length: %d\r\n", buf, filesize);
-    sprintf(buf, "%s Content-Type: %s\r\n\r\n", buf, filetype);
+    sprintf(buf, "%sContent-Length: %d\r\n", buf, filesize);
+    sprintf(buf, "%sContent-Type: %s\r\n\r\n", buf, filetype);
     
     Rio_writen(fd, buf, strlen(buf));
     
@@ -182,7 +182,6 @@ void requestServeStatic(int fd, char *filename, int filesize)
 // handle a request
 void requestHandle(int fd)
 {
-    
     int is_static;
     struct stat sbuf;
     char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];

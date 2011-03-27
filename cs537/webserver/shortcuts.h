@@ -13,9 +13,9 @@ void unix_error(char *msg);
 
 // Wrapper functions
 // Locks
-void Mutex_init();
-void Mutex_lock(void *lock);
-void Mutex_unlock(void *lock);
+void Mutex_init(pthread_mutex_t *lock);
+void Mutex_lock(pthread_mutex_t *lock);
+void Mutex_unlock(pthread_mutex_t *lock);
 
 // Condition variables
 void Cond_init();

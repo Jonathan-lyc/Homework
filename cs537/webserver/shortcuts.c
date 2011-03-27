@@ -8,19 +8,19 @@
 //}
 
 /* $begin wrapper functions */
-void Mutex_init(void *lock) {
+void Mutex_init(pthread_mutex_t *lock) {
 	int rc = pthread_mutex_init(lock, NULL);
 	if (rc != 0) {
 		unix_error("mutex initialization error");
 	}
 }
-void Mutex_lock(void *lock) {
+void Mutex_lock(pthread_mutex_t *lock) {
 	int rc = pthread_mutex_lock(lock);
 	if (rc != 0) {
 	    unix_error("mutex lock error"); 
 	}
 }
-void Mutex_unlock(void *lock) {
+void Mutex_unlock(pthread_mutex_t *lock) {
 	int rc = pthread_mutex_unlock(lock);
 	if (rc != 0) {
 	    unix_error("mutex unlock error"); 
