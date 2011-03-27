@@ -18,16 +18,15 @@ int schedalg;
 int epoch = 5; // Only used if scheduler is SFF-BS 
 
 void usage(char *argv[]) {
-    fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+    fprintf(stderr, "Usage: %s <port> <threads> <buffers> <scheduler>\n", argv[0]);
     exit(1);
 }
 
 void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 {
-    if (argc != 5) {
+    if (argc != 5 || argc != 6) {
 	  usage(argv);
 	}
-	
     *port = atoi(argv[1]);
     if (*port > 65535 || *port < 2000) { 
         usage(argv);
@@ -43,12 +42,21 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
     // FIFO = 0, SFF = 1, SFF-BS = 2
     if (strcmp(argv[4], "FIFO") == 0) {
         schedalg = 0;
+		if (argc != 5) {
+			usage(argv);
+		}
 	}
 	else if (strcmp(argv[4], "SFF") == 0) {
 	    schedalg = 1; 
+		if (argc != 5) {
+			usage(argv);
+		}
 	}
 	else if (strcmp(argv[4], "SFF-BS") == 0) {
-	    schedalg = 2; 
+	    if (argc != 6) {
+			usage(argv);
+		}
+		schedalg = 2; 
 	}
 	else {
 	  usage(argv);
@@ -79,8 +87,8 @@ int get () {
 	}
 }
 
-void *consumer(int *arg) {
-	printf("%d", *arg);
+void *consumer(int arg) {
+	printf("%d", arg);
 }
 int main(int argc, char *argv[])
 {
