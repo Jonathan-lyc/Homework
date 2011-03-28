@@ -2,12 +2,12 @@
 #include "request.h"
 #include <string.h>
 #include "shortcuts.h"
-
+#define DEBUG (0)
 // 
 // server.c: A very, very simple web server
 //
 // To run:
-//  server <portnum (above 2000, below 65535)> <number of threads> <number of buffers> <scheduler>
+//  server <portnum (above 2000, below 65535)> <number of threads> <number of buffers> <scheduler> <epoch (for SFF-BS only)>
 //
 // Repeatedly handles HTTP requests sent to this port number.
 // Most of the work is done within routines written in request.c
@@ -21,7 +21,7 @@ int schedalg;
 int epoch; // Only used if scheduler is SFF-BS 
 int buffersize = 0;
 int maxbuffers;
-int *buffer;
+request *buffer;
 
 
 void usage(char *argv[]) {
@@ -61,6 +61,7 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 		if (argc != 5) {
 			usage(argv);
 		}
+		
 	}
 	else if (strcmp(argv[4], "SFF-BS") == 0) {
 	    if (argc != 6) {
@@ -68,6 +69,7 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 		}
 		epoch = atoi(argv[5]);
 		schedalg = 2; 
+		
 	}
 	else {
 	  usage(argv);
@@ -77,74 +79,84 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 // Queue put
 // Returns 0 if worked, -1 if full
 int put (int  fd) {
-	if (schedalg == 0) {
+	request stats = requestSize(fd);
+	if (buffersize == maxbuffers) {
+		return -1;
+	}
+	if (schedalg < 3) {
 		if (buffersize < maxbuffers) {
-			buffer[buffersize] = dup(fd);
+			buffer[buffersize] = stats;
 			buffersize++;
 			return 0;
 		}
-		else {
-			return -1;
-		}
-	}
-	// Smallest File First
-	else if (schedalg == 1) {
-	    return 0;
-	}
-	// Smallest File First with Bounded Starvation
-	else if (schedalg == 2) {
-	    return 0; 
 	}
 	else {
 	    printf("schedalg not within valid range of 0 - 2");
 	    exit(3);
 	}
-	return 0;
 }
 
 // Queue get
-// Return -1 if nothing left, else returns fd
-int get() {
+// Return stats with size -1 if nothing left, else returns fd
+request get() {
+	request stats;
+	stats.size = -1;
 	// FIFO
 	if (schedalg == 0) {
-	   if (buffersize == 0) {
-		  return -1;
-	   }
-	   else {
-		  buffersize--;
-		  int fd = dup(buffer[buffersize]);
-		  return fd;
-	   }
+		// Nothing in buffer..FAIL!
+	    if (buffersize == 0) {
+			return stats;
+	    }
+	    else {
+			buffersize--;
+			stats = buffer[buffersize];
+			return stats;
+	    }
 	}
 	// Smallest File First
 	else if (schedalg == 1) {
-	   return 0;
+		request ret;
+		ret.size = 100000000;
+		int retint = -1;
+		int i;
+		for (i = 0; i < buffersize; i++) {
+			request r = buffer[i];
+			if (DEBUG == 0) { fprintf(stderr, "r: %d ret: %d\n", r.size, ret.size); }
+			if (ret.size > r.size) {
+				ret = buffer[i];
+				retint = i;
+			}
+		}
+		for (i = retint; i < buffersize - 1; i++) {
+			buffer[i] = buffer[i + 1];
+		}
+		buffersize--;
+		return ret;
 	}
 	// Smallest File First with Bounded Starvation
 	else if (schedalg == 2) {
-	  return 0; 
+		return stats;
 	}
 	else {
-	  printf("schedalg not within valid range of 0 - 2");
-	  exit(3);
+		printf("schedalg not within valid range of 0 - 2");
+		exit(3);
 	}
-	return 0;
 }
 
 void consumer(int arg) {
 	while(1) {
-	  fprintf(stderr, "consumer start\n");
+	  if (DEBUG) { fprintf(stderr, "consumer start\n"); }
 	  Mutex_lock(&lock);
 	  while(buffersize == 0){
-		  fprintf(stderr, "consumer wait\n");
+		  if (DEBUG) { fprintf(stderr, "consumer wait\n"); }
 		  Cond_wait(&fill, &lock);
 	  }
-	  fprintf(stderr, "consumer awake\n");
-	  int connfd = get();
-	  requestHandle(connfd);
+	  if (DEBUG) { fprintf(stderr, "consumer awake\n"); }
+	  request stat = get();
+	  requestHandle(stat); //This could be moved outside the lock maybe? Might fix fifo test
 	  Cond_signal(&empty);
 	  Mutex_unlock(&lock);
-	  fprintf(stderr, "consumer end\n");
+	  if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}
 }
 int main(int argc, char *argv[])
@@ -182,25 +194,25 @@ int main(int argc, char *argv[])
     // Add in check for the conditional variables here.
 	// This is the producer thread. it will sleep when buffer is full. 
     while (1) {
-		fprintf(stderr, "producer start\n");
+		if (DEBUG) { fprintf(stderr, "producer start\n"); }
         Mutex_lock(&lock);
 		while(buffersize == maxbuffers) {
-			fprintf(stderr, "producer wait\n");
+			if (DEBUG) { fprintf(stderr, "producer wait\n"); }
 			Cond_wait(&empty, &lock);
 		}
 		Mutex_unlock(&lock);
-		fprintf(stderr, "producer awake\n");
+		if (DEBUG) { fprintf(stderr, "producer awake\n"); }
 		clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen); //Thread blocks here, waiting for connections. Might need to sleep here?
 		Mutex_lock(&lock);
 		if (put(connfd) != 0) {
-			fprintf(stderr, "Put failed");
+			if (DEBUG) { fprintf(stderr, "Put failed"); }
 		}
 		Close(connfd);       
-		fprintf(stderr, "signalling consumer\n");
+		if (DEBUG) { fprintf(stderr, "signalling consumer\n"); }
 		Cond_signal(&fill);
 		Mutex_unlock(&lock);
-		fprintf(stderr, "producer end\n");
+		if (DEBUG) { fprintf(stderr, "producer end\n"); }
     }
 
 }

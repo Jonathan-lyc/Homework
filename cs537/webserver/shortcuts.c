@@ -61,3 +61,45 @@ void Pthread_join(pthread_t *cid) {
 		unix_error("pthread join error");
 	}
 }
+
+struct node *head, *tail;
+
+void ll_append(struct node *n) {
+	if (head == NULL) {
+		head = n;
+		n->prev = NULL;
+	}
+	else {
+		tail->next = n;
+		n->prev = tail;
+	}
+	tail = n;
+	n->next = NULL;
+}
+void ll_insert(struct node *before, struct node *after) {
+	before->next = after->next;
+	before->prev = after;
+	
+	if (after->next != NULL) {
+		after->next->prev = before;
+	}
+	else {
+		tail = before;
+	}
+	after->next = before;
+}
+void ll_remove(struct node *n) {
+	if (n->next != NULL) {
+		head = n->next;
+	}
+	else {
+		n->prev->next = n->next;
+	}
+	
+	if (n->next == NULL) {
+		tail = n->prev;
+	}
+	else {
+		n->next->prev = n->prev;
+	}
+}
