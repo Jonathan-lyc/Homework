@@ -26,16 +26,5 @@ void Cond_signal(pthread_cond_t *cond);
 void Pthread_create(pthread_t *cid, void *func);
 void Pthread_join(pthread_t *cid);
 
-// Linked list
-struct node {
-  struct request *req;
-  struct node *next;
-  struct node *prev;
-};
-
-void ll_append(struct node *n);
-void ll_insert(struct node *prev, struct node *after);
-void ll_remove(struct node *n);
-
-
+int timeval_subtract(struct timeval *result, struct timeval *t2, struct timeval *t1);
 #endif

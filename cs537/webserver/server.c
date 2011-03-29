@@ -19,9 +19,13 @@ pthread_cond_t empty;
 pthread_cond_t fill;
 int schedalg;
 int epoch; // Only used if scheduler is SFF-BS 
+int currepoch; 
 int buffersize = 0;
 int maxbuffers;
 request *buffer;
+
+// Thread stats
+int next_thread_id = 0;
 
 
 void usage(char *argv[]) {
@@ -79,7 +83,10 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 // Queue put
 // Returns 0 if worked, -1 if full
 int put (int  fd) {
-	request stats = requestSize(fd);
+	request id;
+	id.fd = dup(fd);
+	request stats = requestInit(id);
+	if (DEBUG) { fprintf(stderr, "put size: %d", (int) stats.size); }
 	if (buffersize == maxbuffers) {
 		return -1;
 	}
@@ -94,11 +101,17 @@ int put (int  fd) {
 	    printf("schedalg not within valid range of 0 - 2");
 	    exit(3);
 	}
+	return -1;
 }
 
 // Queue get
 // Return stats with size -1 if nothing left, else returns fd
 request get() {
+	// Time we start working on request
+	struct timeval work;
+	gettimeofday(&work, NULL); 
+	
+	// Dummy request to check for failure
 	request stats;
 	stats.size = -1;
 	// FIFO
@@ -110,32 +123,85 @@ request get() {
 	    else {
 			buffersize--;
 			stats = buffer[buffersize];
+			
+			//Store time
+			struct timeval diff, arrive;
+			arrive = stats.req_arrival;
+			timeval_subtract(&diff, &work, &arrive);
+			stats.req_dispatch = diff;
+			
 			return stats;
 	    }
 	}
 	// Smallest File First
-	else if (schedalg == 1) {
-		request ret;
-		ret.size = 100000000;
-		int retint = -1;
+	else if (schedalg == 1 || buffersize < epoch) {
+		int small = -1;
+		request smallreq;
 		int i;
-		for (i = 0; i < buffersize; i++) {
-			request r = buffer[i];
-			if (DEBUG == 0) { fprintf(stderr, "r: %d ret: %d\n", r.size, ret.size); }
-			if (ret.size > r.size) {
-				ret = buffer[i];
-				retint = i;
+		
+		for ( i = 0; i < buffersize; i++) {//Find smallest
+			if (small == -1) {
+				small = i;
+				smallreq = buffer[i];
+			}
+			else {
+				request a = buffer[i];
+				if (a.size < smallreq.size) {
+					small = i;
+					smallreq = buffer[i];
+				}
 			}
 		}
-		for (i = retint; i < buffersize - 1; i++) {
-			buffer[i] = buffer[i + 1];
+		int j;
+		for (j = small; j < buffersize - 1; j++) {
+			buffer[j] = buffer[j + 1];
 		}
+		
+		//Store time
+		struct timeval diff, arrive;
+		arrive = smallreq.req_arrival;
+		timeval_subtract(&diff, &work, &arrive);
+		smallreq.req_dispatch = diff;
+		
 		buffersize--;
-		return ret;
+		return smallreq;
 	}
 	// Smallest File First with Bounded Starvation
 	else if (schedalg == 2) {
-		return stats;
+		int small = -1;
+		request smallreq;
+		int i;
+		if (currepoch == 0) {
+			currepoch = epoch;
+		}
+		for ( i = 0; i < currepoch; i++) { //Find smallest in epoch
+			if (small == -1) { //Initialize
+				small = i;
+				smallreq = buffer[i];
+			}
+			else {
+				request a = buffer[i];
+				if (a.size < smallreq.size) { //If smaller, save it
+					small = i;
+					smallreq = buffer[i];
+				}
+			}
+		}
+		currepoch--;
+		
+		int j;
+		for (j = small; j < buffersize - 1; j++) {
+			buffer[j] = buffer[j + 1];
+		}
+		
+		//Store time
+		struct timeval diff, arrive;
+		arrive = smallreq.req_arrival;
+		timeval_subtract(&diff, &work, &arrive);
+		smallreq.req_dispatch = diff;
+		
+		buffersize--;
+		return smallreq;
 	}
 	else {
 		printf("schedalg not within valid range of 0 - 2");
@@ -143,20 +209,43 @@ request get() {
 	}
 }
 
-void consumer(int arg) {
+void consumer(int id) {
+	// Assign id
+	int thread_id = next_thread_id;
+	int thread_count = 0;
+	int thread_static = 0;
+	int thread_dynamic = 0;
+	next_thread_id++;
 	while(1) {
-	  if (DEBUG) { fprintf(stderr, "consumer start\n"); }
-	  Mutex_lock(&lock);
-	  while(buffersize == 0){
-		  if (DEBUG) { fprintf(stderr, "consumer wait\n"); }
-		  Cond_wait(&fill, &lock);
-	  }
-	  if (DEBUG) { fprintf(stderr, "consumer awake\n"); }
-	  request stat = get();
-	  requestHandle(stat); //This could be moved outside the lock maybe? Might fix fifo test
-	  Cond_signal(&empty);
-	  Mutex_unlock(&lock);
-	  if (DEBUG) { fprintf(stderr, "consumer end\n"); }
+		if (DEBUG) { fprintf(stderr, "consumer start\n"); }
+		Mutex_lock(&lock);
+		while(buffersize == 0){
+			if (DEBUG) { fprintf(stderr, "consumer wait\n"); }
+			Cond_wait(&fill, &lock);
+		}
+		if (DEBUG) { fprintf(stderr, "consumer awake\n"); }
+		request stat = get();
+		
+		// Set thread specific stats
+		stat.thread_id = thread_id;
+		stat.thread_count = thread_count;
+		stat.thread_static = thread_static;
+		stat.thread_dynamic = thread_dynamic;
+		
+		requestHandle(stat); //This could be moved outside the lock maybe? Might fix fifo test
+		Cond_signal(&empty);
+		
+		// Increment thread specific stats
+		if (stat.is_static == 0) {
+			thread_dynamic++;
+		}
+		else {
+			thread_static++;
+		}
+		thread_count++;
+		
+		Mutex_unlock(&lock);
+		if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}
 }
 int main(int argc, char *argv[])
@@ -167,7 +256,7 @@ int main(int argc, char *argv[])
     getargs(&port, &threads, &buffers, argc, argv);
     
 	//Buffers incoming connections
-	buffer = (int *) malloc(buffers * sizeof(int)); 
+	buffer = (request *) malloc(buffers * sizeof(request)); 
 	if (buffer == NULL) {
 	  // Malloc failed, must be out of memory.
 	  printf("Malloc failed");
