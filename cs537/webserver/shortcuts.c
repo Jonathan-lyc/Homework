@@ -49,8 +49,8 @@ void Cond_signal(pthread_cond_t *cond) {
 
 // Thread shortcuts
 
-void Pthread_create(pthread_t *cid, void *func) {
-	int rc = pthread_create(cid, NULL, func, NULL);
+void Pthread_create(pthread_t *cid, void *func, int i) {
+	int rc = pthread_create(cid, NULL, func, (void *) i);
 	if (rc != 0) {
 		unix_error("pthread create error");
 	}

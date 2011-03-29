@@ -24,9 +24,6 @@ int buffersize = 0;
 int maxbuffers;
 request *buffer;
 
-// Thread stats
-int next_thread_id = 0;
-
 
 void usage(char *argv[]) {
     fprintf(stderr, "Usage: %s <port> <threads> <buffers> <scheduler>\n", argv[0]);
@@ -83,13 +80,16 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 // Queue put
 // Returns 0 if worked, -1 if full
 int put (int  fd) {
-	request id;
+	request id; // wrap fd in request struct
 	id.fd = dup(fd);
 	request stats = requestInit(id);
+    
 	if (DEBUG) { fprintf(stderr, "put size: %d", (int) stats.size); }
-	if (buffersize == maxbuffers) {
+	
+	if (buffersize == maxbuffers) { // Buffer full!
 		return -1;
 	}
+	
 	if (schedalg < 3) {
 		if (buffersize < maxbuffers) {
 			buffer[buffersize] = stats;
@@ -121,15 +121,21 @@ request get() {
 			return stats;
 	    }
 	    else { // Should be stats=buffer[0]; then, shift everything down one. buffersize--;
-			buffersize--;
-			stats = buffer[buffersize];
-			
+			stats = buffer[0];
+
+            // Shift all array elems down.
+            int j;
+            for (j = 0; j < buffersize - 1; j++) {
+                buffer[j] = buffer[j + 1];
+            }
+
 			//Store time
 			struct timeval diff, arrive;
 			arrive = stats.req_arrival;
 			timeval_subtract(&diff, &work, &arrive);
 			stats.req_dispatch = diff;
-			
+
+            buffersize--;
 			return stats;
 	    }
 	}
@@ -210,21 +216,23 @@ request get() {
 }
 
 void consumer(int id) {
-	// Assign id
-	int thread_id = next_thread_id;
+    // Assign id
+	int thread_id = id;
 	int thread_count = 0;
 	int thread_static = 0;
 	int thread_dynamic = 0;
-	next_thread_id++;
 	while(1) {
 		if (DEBUG) { fprintf(stderr, "consumer start\n"); }
 		Mutex_lock(&lock);
 		while(buffersize == 0){
 			if (DEBUG) { fprintf(stderr, "consumer wait\n"); }
 			Cond_wait(&fill, &lock);
+            if (DEBUG) { fprintf(stderr, "consumer awake, buff: %d\n", buffersize); }
 		}
-		if (DEBUG) { fprintf(stderr, "consumer awake\n"); }
 		request stat = get();
+        if (stat.size == -1) {
+            unix_error("get from empty queue");
+        }
 		
 		// Set thread specific stats
 		stat.thread_id = thread_id;
@@ -232,9 +240,9 @@ void consumer(int id) {
 		stat.thread_static = thread_static;
 		stat.thread_dynamic = thread_dynamic;
 		
-		requestHandle(stat); //This could be moved outside the lock maybe? Might fix fifo test
+		 //This could be moved outside the lock maybe? Might fix fifo test
 		Cond_signal(&empty);
-		
+        requestHandle(stat);
 		// Increment thread specific stats
 		if (stat.is_static == 0) {
 			thread_dynamic++;
@@ -245,6 +253,7 @@ void consumer(int id) {
 		thread_count++;
 		
 		Mutex_unlock(&lock);
+        
 		if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}
 }
@@ -269,14 +278,16 @@ int main(int argc, char *argv[])
 	Cond_init(&fill);
 	
 	// cid will be the container for threads
-	pthread_t pid, cid[threads];
+	pthread_t  cid[threads];
 	
     // 
     // CS537: Create thread pool of consumers
     //
+    /* Allocate memory for pthread_create() arguments */
+    
 	int i;
 	for (i = 0; i < threads; i++) {
-		Pthread_create(&cid[i], consumer);
+		Pthread_create(&cid[i], consumer, i);
 	}
     listenfd = Open_listenfd(port);
 
@@ -288,9 +299,9 @@ int main(int argc, char *argv[])
 		while(buffersize == maxbuffers) {
 			if (DEBUG) { fprintf(stderr, "producer wait\n"); }
 			Cond_wait(&empty, &lock);
+            if (DEBUG) { fprintf(stderr, "producer awake\n"); }
 		}
 		Mutex_unlock(&lock);
-		if (DEBUG) { fprintf(stderr, "producer awake\n"); }
 		clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen); //Thread blocks here, waiting for connections. Might need to sleep here?
 		Mutex_lock(&lock);
