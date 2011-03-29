@@ -120,7 +120,7 @@ request get() {
 	    if (buffersize == 0) {
 			return stats;
 	    }
-	    else {
+	    else { // Should be stats=buffer[0]; then, shift everything down one. buffersize--;
 			buffersize--;
 			stats = buffer[buffersize];
 			
