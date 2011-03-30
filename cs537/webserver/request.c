@@ -101,22 +101,24 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 {
 	struct timeval req_arrival, req_dispatch;
 	char buf[MAXLINE], *emptylist[] = {NULL};
-	
+	char *fn = stats.filename;
 	req_arrival = stats.req_arrival;
 	req_dispatch = stats.req_dispatch;
 
-   // The server does only a little bit of the header.  
-   // The CGI script has to finish writing out the header.
+	// The server does only a little bit of the header.  
+	// The CGI script has to finish writing out the header.
 	sprintf(buf, "HTTP/1.0 200 OK\r\n");
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
 
-   /* CS537: Your statistics go here -- fill in the 0's with something useful! */
-	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, req_arrival);
+	/* CS537: Your statistics go here -- fill in the 0's with something useful! */
+	int arrival = req_arrival.tv_usec / 1000;
+	fprintf(stderr, "arrival: %d\n", arrival);
+	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, arrival);
 	sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, req_dispatch);
-	sprintf(buf, "%sStat-thread-id: %d\r\n", buf, 0);
-	sprintf(buf, "%sStat-thread-count: %d\r\n", buf, 0);
-	sprintf(buf, "%sStat-thread-static: %d\r\n", buf, 0);
-	sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, 0);
+	sprintf(buf, "%sStat-thread-id: %d\r\n", buf, stats.thread_id);
+	sprintf(buf, "%sStat-thread-count: %d\r\n", buf, stats.thread_count);
+	sprintf(buf, "%sStat-thread-static: %d\r\n", buf, stats.thread_static);
+	sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, stats.thread_dynamic);
 
 	Rio_writen(fd, buf, strlen(buf));
 
@@ -125,7 +127,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 		Setenv("QUERY_STRING", cgiargs, 1);
 		/* When the CGI process writes to stdout, it will instead go to the socket */
 		Dup2(fd, STDOUT_FILENO);
-		Execve(filename, emptylist, environ);
+		Execve(fn, emptylist, environ);
 	}
 	Wait(NULL);
 }
@@ -170,16 +172,16 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	
 	sprintf(buf, "HTTP/1.0 200 OK\r\n");
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
-
+	fprintf(stderr, "arrival: %d\n", ((int) req_begin.tv_usec / 1000));
 	// CS537: Your statistics go here -- fill in the 0's with something useful!
-	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, req_begin.tv_usec);
-	sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, req_dispatch.tv_usec);
-	sprintf(buf, "%sStat-req-read: %d\r\n", buf, rd_diff.tv_usec);
-	sprintf(buf, "%sStat-req-complete: %d\r\n", buf, req_diff.tv_usec);
-	sprintf(buf, "%sStat-thread-id: %d\r\n", buf, 0);
-	sprintf(buf, "%sStat-thread-count: %d\r\n", buf, 0);
-	sprintf(buf, "%sStat-thread-static: %d\r\n", buf, 0);
-	sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, 0);
+	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, ((int) req_begin.tv_usec / 1000));
+	sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, (int) req_dispatch.tv_usec);
+	sprintf(buf, "%sStat-req-read: %d\r\n", buf, (int) rd_diff.tv_usec);
+	sprintf(buf, "%sStat-req-complete: %d\r\n", buf, (int) req_diff.tv_usec);
+	sprintf(buf, "%sStat-thread-id: %d\r\n", buf, stats.thread_id);
+	sprintf(buf, "%sStat-thread-count: %d\r\n", buf, stats.thread_count);
+	sprintf(buf, "%sStat-thread-static: %d\r\n", buf, stats.thread_static);
+	sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, stats.thread_dynamic);
 
 	sprintf(buf, "%sContent-Length: %d\r\n", buf, filesize);
 	sprintf(buf, "%sContent-Type: %s\r\n\r\n", buf, filetype);
@@ -195,11 +197,7 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 request requestInit(request id) {
 	int fd = dup(id.fd);
 	request stats;
-	
-	//Stat timings
-	struct timeval tv;
-	gettimeofday(&tv, NULL); 
-	stats.req_arrival = tv;
+	stats.req_arrival = id.req_arrival;
 	
 	int is_static;
 	struct stat sbuf;
@@ -261,5 +259,3 @@ void requestHandle(request stats)
 		requestServeDynamic(fd, filename, cgiargs, stats);
    }
 }
-
-

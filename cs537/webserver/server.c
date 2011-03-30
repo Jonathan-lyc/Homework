@@ -82,11 +82,15 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 int put (int  fd) {
 	request id; // wrap fd in request struct
 	id.fd = dup(fd);
+	
+	//Stat timings
+	struct timeval tv;
+	gettimeofday(&tv, NULL); 
+	id.req_arrival = tv;
+	
 	request stats = requestInit(id);
     
-	if (DEBUG) { fprintf(stderr, "put size: %d", (int) stats.size); }
-	
-	if (buffersize == maxbuffers) { // Buffer full!
+	if (buffersize >= maxbuffers) { // Buffer full!
 		return -1;
 	}
 	
@@ -216,7 +220,7 @@ request get() {
 }
 
 void consumer(int id) {
-    // Assign id
+	// Assign id
 	int thread_id = id;
 	int thread_count = 0;
 	int thread_static = 0;
@@ -296,19 +300,19 @@ int main(int argc, char *argv[])
     while (1) {
 		if (DEBUG) { fprintf(stderr, "producer start\n"); }
         Mutex_lock(&lock);
-		while(buffersize == maxbuffers) {
+		while(buffersize >= maxbuffers) {
 			if (DEBUG) { fprintf(stderr, "producer wait\n"); }
 			Cond_wait(&empty, &lock);
             if (DEBUG) { fprintf(stderr, "producer awake\n"); }
 		}
-		Mutex_unlock(&lock);
 		clientlen = sizeof(clientaddr);
+		Mutex_unlock(&lock);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen); //Thread blocks here, waiting for connections. Might need to sleep here?
 		Mutex_lock(&lock);
 		if (put(connfd) != 0) {
 			if (DEBUG) { fprintf(stderr, "Put failed"); }
 		}
-		Close(connfd);       
+// 		Close(connfd);       
 		if (DEBUG) { fprintf(stderr, "signalling consumer\n"); }
 		Cond_signal(&fill);
 		Mutex_unlock(&lock);
@@ -316,9 +320,3 @@ int main(int argc, char *argv[])
     }
 
 }
-
-
-    
-
-
- 
