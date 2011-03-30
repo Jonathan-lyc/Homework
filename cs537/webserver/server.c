@@ -3,6 +3,7 @@
 #include <string.h>
 #include "shortcuts.h"
 #define DEBUG (0)
+#define D2 (1)
 // 
 // server.c: A very, very simple web server
 //
@@ -80,6 +81,7 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 // Queue put
 // Returns 0 if worked, -1 if full
 int put (int  fd) {
+    if (D2) { fprintf(stdout, "put buff size: %d", buffersize); }
 	request id; // wrap fd in request struct
 	id.fd = dup(fd);
 	
@@ -111,6 +113,7 @@ int put (int  fd) {
 // Queue get
 // Return stats with size -1 if nothing left, else returns fd
 request get() {
+    if (D2) { fprintf(stdout, "get buff size: %d", buffersize); }
 	// Time we start working on request
 	struct timeval work;
 	gettimeofday(&work, NULL); 

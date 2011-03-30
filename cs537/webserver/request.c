@@ -112,7 +112,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 
 	/* CS537: Your statistics go here -- fill in the 0's with something useful! */
 	int arrival = req_arrival.tv_usec / 1000;
-	fprintf(stderr, "arrival: %d\n", arrival);
+// 	fprintf(stderr, "arrival: %d\n", arrival);
 	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, arrival);
 	sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, req_dispatch);
 	sprintf(buf, "%sStat-thread-id: %d\r\n", buf, stats.thread_id);
@@ -172,7 +172,7 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	
 	sprintf(buf, "HTTP/1.0 200 OK\r\n");
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
-	fprintf(stderr, "arrival: %d\n", ((int) req_begin.tv_usec / 1000));
+// 	fprintf(stderr, "arrival: %d\n", ((int) req_begin.tv_usec / 1000));
 	// CS537: Your statistics go here -- fill in the 0's with something useful!
 	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, ((int) req_begin.tv_usec / 1000));
 	sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, (int) req_dispatch.tv_usec);
