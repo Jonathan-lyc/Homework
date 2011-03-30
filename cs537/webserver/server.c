@@ -81,14 +81,13 @@ void getargs(int *port, int *threads, int *buffers, int argc, char *argv[])
 // Queue put
 // Returns 0 if worked, -1 if full
 int put (int  fd) {
-    if (D2) { fprintf(stdout, "put buff size: %d", buffersize); }
 	request id; // wrap fd in request struct
-	id.fd = dup(fd);
+	id.fd = fd;
 	
 	//Stat timings
 	struct timeval tv;
 	gettimeofday(&tv, NULL); 
-	id.req_arrival = tv;
+	id.req_arrival = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 	
 	request stats = requestInit(id);
     
@@ -113,10 +112,10 @@ int put (int  fd) {
 // Queue get
 // Return stats with size -1 if nothing left, else returns fd
 request get() {
-    if (D2) { fprintf(stdout, "get buff size: %d", buffersize); }
 	// Time we start working on request
-	struct timeval work;
-	gettimeofday(&work, NULL); 
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+    long int work = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 	
 	// Dummy request to check for failure
 	request stats;
@@ -137,10 +136,8 @@ request get() {
             }
 
 			//Store time
-			struct timeval diff, arrive;
-			arrive = stats.req_arrival;
-			timeval_subtract(&diff, &work, &arrive);
-			stats.req_dispatch = diff;
+			int long arrive = stats.req_arrival;
+			stats.req_dispatch = work - arrive;
 
             buffersize--;
 			return stats;
@@ -171,10 +168,8 @@ request get() {
 		}
 		
 		//Store time
-		struct timeval diff, arrive;
-		arrive = smallreq.req_arrival;
-		timeval_subtract(&diff, &work, &arrive);
-		smallreq.req_dispatch = diff;
+		int long arrive = stats.req_arrival;
+        smallreq.req_dispatch = work - arrive;
 		
 		buffersize--;
 		return smallreq;
@@ -208,10 +203,8 @@ request get() {
 		}
 		
 		//Store time
-		struct timeval diff, arrive;
-		arrive = smallreq.req_arrival;
-		timeval_subtract(&diff, &work, &arrive);
-		smallreq.req_dispatch = diff;
+		int long arrive = stats.req_arrival;
+        smallreq.req_dispatch = work - arrive;
 		
 		buffersize--;
 		return smallreq;
@@ -240,7 +233,13 @@ void consumer(int id) {
         if (stat.size == -1) {
             unix_error("get from empty queue");
         }
-		
+        if (stat.is_static == 0) {
+            thread_dynamic++;
+        }
+        else {
+            thread_static++;
+        }
+        thread_count++;
 		// Set thread specific stats
 		stat.thread_id = thread_id;
 		stat.thread_count = thread_count;
@@ -249,17 +248,12 @@ void consumer(int id) {
 		
 		 //This could be moved outside the lock maybe? Might fix fifo test
 		Cond_signal(&empty);
+        Mutex_unlock(&lock);
         requestHandle(stat);
 		// Increment thread specific stats
-		if (stat.is_static == 0) {
-			thread_dynamic++;
-		}
-		else {
-			thread_static++;
-		}
-		thread_count++;
 		
-		Mutex_unlock(&lock);
+		
+		
         
 		if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}

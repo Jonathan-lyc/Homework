@@ -9,8 +9,8 @@ typedef struct {
   char *filename;
   int is_static;
   //Request stats
-  struct timeval req_arrival;
-  struct timeval req_dispatch;
+  long int req_arrival;
+  long int req_dispatch;
   //Thread stats
   int thread_id;
   int thread_count;

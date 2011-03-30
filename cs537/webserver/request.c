@@ -99,7 +99,8 @@ void requestGetFiletype(char *filename, char *filetype)
 
 void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 {
-	struct timeval req_arrival, req_dispatch;
+//     fprintf(stdout, "dyn fn: %s, fd: %d\n", filename, fd);
+    long int req_arrival, req_dispatch;
 	char buf[MAXLINE], *emptylist[] = {NULL};
 	char *fn = stats.filename;
 	req_arrival = stats.req_arrival;
@@ -111,10 +112,10 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
 
 	/* CS537: Your statistics go here -- fill in the 0's with something useful! */
-	int arrival = req_arrival.tv_usec / 1000;
+	//int arrival = req_arrival.tv_usec / 1000;
 // 	fprintf(stderr, "arrival: %d\n", arrival);
-	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, arrival);
-	sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, req_dispatch);
+	sprintf(buf, "%sStat-req-arrival: %ld\r\n", buf, req_arrival);
+	sprintf(buf, "%sStat-req-dispatch: %ld\r\n", buf, req_dispatch);
 	sprintf(buf, "%sStat-thread-id: %d\r\n", buf, stats.thread_id);
 	sprintf(buf, "%sStat-thread-count: %d\r\n", buf, stats.thread_count);
 	sprintf(buf, "%sStat-thread-static: %d\r\n", buf, stats.thread_static);
@@ -135,7 +136,8 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 
 void requestServeStatic(int fd, char *filename, int filesize, request stats) 
 {
-	struct timeval rd_begin, rd_end, rd_diff, req_begin, req_diff, req_dispatch;
+//     fprintf(stdout, "static fn: %s, fd: %d\n", filename, fd);
+	struct timeval tv;
 	//rd_end is also when the serving completes
 	int srcfd;
 	char *srcp, filetype[MAXLINE], buf[MAXBUF];
@@ -144,7 +146,9 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 
 	requestGetFiletype(filename, filetype);
 
-	gettimeofday(&rd_begin, NULL);
+	gettimeofday(&tv, NULL);
+    int long rd_begin = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+    
 	srcfd = Open(filename, O_RDONLY, 0);
 
 	// Rather than call read() to read the file into memory, 
@@ -162,22 +166,24 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	for (i = 0; i < filesize; i++) {
 		tmp += *(srcp + i);
 	}
-	gettimeofday(&rd_end, NULL);
+	gettimeofday(&tv, NULL);
+    int long rd_end = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 
 	// finish time calculations
-	req_begin = stats.req_arrival;
-	req_dispatch = stats.req_dispatch;
-	timeval_subtract(&rd_diff, &rd_end, &rd_begin);
-	timeval_subtract(&req_diff, &rd_end, &req_begin);
+	int long req_begin = stats.req_arrival;
+	int long req_dispatch = stats.req_dispatch;
+    int long rd_diff = rd_end - rd_begin;
+    int long req_diff = rd_end - req_begin;
+    fprintf(stderr, "rd_end: %ld, rd_begin: %ld, comp: %ld\n", req_diff);
 	
 	sprintf(buf, "HTTP/1.0 200 OK\r\n");
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
 // 	fprintf(stderr, "arrival: %d\n", ((int) req_begin.tv_usec / 1000));
 	// CS537: Your statistics go here -- fill in the 0's with something useful!
-	sprintf(buf, "%sStat-req-arrival: %d\r\n", buf, ((int) req_begin.tv_usec / 1000));
-	sprintf(buf, "%sStat-req-dispatch: %d\r\n", buf, (int) req_dispatch.tv_usec);
-	sprintf(buf, "%sStat-req-read: %d\r\n", buf, (int) rd_diff.tv_usec);
-	sprintf(buf, "%sStat-req-complete: %d\r\n", buf, (int) req_diff.tv_usec);
+	sprintf(buf, "%sStat-req-arrival: %ld\r\n", buf, stats.req_arrival);
+	sprintf(buf, "%sStat-req-dispatch: %ld\r\n", buf, req_dispatch);
+	sprintf(buf, "%sStat-req-read: %ld\r\n", buf, rd_diff);
+	sprintf(buf, "%sStat-req-complete: %ld\r\n", buf, req_diff);
 	sprintf(buf, "%sStat-thread-id: %d\r\n", buf, stats.thread_id);
 	sprintf(buf, "%sStat-thread-count: %d\r\n", buf, stats.thread_count);
 	sprintf(buf, "%sStat-thread-static: %d\r\n", buf, stats.thread_static);
@@ -191,11 +197,12 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	//  Writes out to the client socket the memory-mapped file 
 	Rio_writen(fd, srcp, filesize);
 	Munmap(srcp, filesize);
+    Close(fd);
 
 }
 
 request requestInit(request id) {
-	int fd = dup(id.fd);
+	int fd = id.fd;
 	request stats;
 	stats.req_arrival = id.req_arrival;
 	
@@ -225,7 +232,7 @@ request requestInit(request id) {
 		requestError(fd, filename, "404", "Not found", "CS537 Server could not find this file");
 		return stats;
 	}
-	stats.fd = dup(fd);
+	stats.fd = fd;
 	stats.sbuf = sbuf;
 	stats.size = sbuf.st_size;
 	stats.filename = filename;
@@ -239,7 +246,7 @@ void requestHandle(request stats)
 {
 	struct stat sbuf = stats.sbuf;
 	int is_static = stats.is_static;
-	int fd = dup(stats.fd);
+	int fd = stats.fd;
 	char filename[MAXLINE];
 	memcpy(filename, stats.filename, MAXLINE);
 	char cgiargs[MAXLINE];
