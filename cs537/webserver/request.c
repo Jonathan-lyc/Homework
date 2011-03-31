@@ -78,11 +78,12 @@ int requestParseURI(char *uri, char *filename, char *cgiargs)
          strcpy(cgiargs, "");
       }
       sprintf(filename, ".%s", uri);
+// 	  fprintf(stderr, "cgi begin: %s    ", cgiargs);
       return 0;
    }
 }
 
-//
+// 
 // Fills in the filetype given the filename
 //
 void requestGetFiletype(char *filename, char *filetype)
@@ -122,14 +123,14 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 	sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, stats.thread_dynamic);
 
 	Rio_writen(fd, buf, strlen(buf));
-	fprintf(stderr, "exec - fn: %s, fd: %d cgi: %s", fn, fd, cgiargs);
+// 	fprintf(stderr, "exec - fn: %s, fd: %d cgi: %s\n", fn, fd, cgiargs); // <-- proves that cgiargs is messed up and pissing me off.
+// 	fprintf(stderr, "cgiargs b4 fork: %s   ", cgiargs);
 	if (Fork() == 0) {
 		/* Child process */
 		Setenv("QUERY_STRING", cgiargs, 1);
 		/* When the CGI process writes to stdout, it will instead go to the socket */
 		Dup2(fd, STDOUT_FILENO);
 		Execve(fn, emptylist, environ);
-		fprintf(stderr, "F'ING EXECVE DOESN'T F'ING EQUAL WORK. LET'S JUST WAIT AROUND FOREVER?");
 	}
 	Wait(NULL);
 }
@@ -199,7 +200,6 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	Rio_writen(fd, srcp, filesize);
 	Munmap(srcp, filesize);
     Close(fd);
-
 }
 
 request requestInit(request id) {
@@ -237,6 +237,7 @@ request requestInit(request id) {
 	stats.sbuf = sbuf;
 	stats.size = sbuf.st_size;
 	stats.filename = filename;
+// 	fprintf(stderr, "cgiargs b4 store: %s   ", cgiargs);
 	stats.cgiargs = cgiargs;
 	stats.is_static = is_static;
 	return stats;
@@ -252,6 +253,7 @@ void requestHandle(request stats)
 	memcpy(filename, stats.filename, MAXLINE);
 	char cgiargs[MAXLINE];
 	memcpy(cgiargs, stats.cgiargs, MAXLINE);
+// 	fprintf(stderr, "cgiargs after store: %s   ", cgiargs);
     if (is_static) {
 		if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)) {
 			requestError(fd, filename, "403", "Forbidden", "CS537 Server could not read this file");
