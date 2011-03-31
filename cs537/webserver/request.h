@@ -5,8 +5,8 @@ typedef struct {
   int fd;
   struct stat sbuf;
   int size;
-  char *cgiargs;
-  char *filename;
+  char cgiargs[8192];
+  char filename[8192];
   int is_static;
   //Request stats
   long int req_arrival;

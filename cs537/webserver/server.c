@@ -230,6 +230,10 @@ void consumer(int id) {
             if (DEBUG) { fprintf(stderr, "consumer awake, buff: %d\n", buffersize); }
 		}
 		request stat = get();
+        stat.thread_id = thread_id;
+
+//         fprintf(stderr, "thread: %d, static: %d handle fn: %s\n", stat.thread_count, stat.is_static,  stat.filename);
+        
         if (stat.size == -1) {
             unix_error("get from empty queue");
         }
@@ -241,7 +245,7 @@ void consumer(int id) {
         }
         thread_count++;
 		// Set thread specific stats
-		stat.thread_id = thread_id;
+		
 		stat.thread_count = thread_count;
 		stat.thread_static = thread_static;
 		stat.thread_dynamic = thread_dynamic;
@@ -250,10 +254,7 @@ void consumer(int id) {
 		Cond_signal(&empty);
         Mutex_unlock(&lock);
         requestHandle(stat);
-		// Increment thread specific stats
-		
-		
-		
+        Close(stat.fd);
         
 		if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}

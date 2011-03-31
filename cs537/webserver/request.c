@@ -59,14 +59,15 @@ void requestReadhdrs(rio_t *rp)
 int requestParseURI(char *uri, char *filename, char *cgiargs) 
 {
    char *ptr;
-
+   char fn [MAXLINE];
    if (!strstr(uri, "cgi")) {
       // static
       strcpy(cgiargs, "");
-      sprintf(filename, ".%s", uri);
+      sprintf(fn, ".%s", uri);
       if (uri[strlen(uri)-1] == '/') {
-         strcat(filename, "home.html");
+         strcat(fn, "home.html");
       }
+      memcpy(filename, fn, MAXLINE);
       return 1;
    } else {
       // dynamic
@@ -77,7 +78,8 @@ int requestParseURI(char *uri, char *filename, char *cgiargs)
       } else {
          strcpy(cgiargs, "");
       }
-      sprintf(filename, ".%s", uri);
+      sprintf(fn, ".%s", uri);
+      memcpy(filename, fn, MAXLINE);
       return 0;
    }
 }
@@ -144,12 +146,12 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	char tmp = 0;
 	int i;
 
-	requestGetFiletype(filename, filetype);
+	requestGetFiletype(stats.filename, filetype);
 
 	gettimeofday(&tv, NULL);
     int long rd_begin = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
     
-	srcfd = Open(filename, O_RDONLY, 0);
+	srcfd = Open(stats.filename, O_RDONLY, 0);
 
 	// Rather than call read() to read the file into memory, 
 	// which would require that we allocate a buffer, we memory-map the file
@@ -170,11 +172,10 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
     int long rd_end = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 
 	// finish time calculations
-	int long req_begin = stats.req_arrival;
 	int long req_dispatch = stats.req_dispatch;
     int long rd_diff = rd_end - rd_begin;
-    int long req_diff = rd_end - req_begin;
-    fprintf(stderr, "rd_end: %ld, rd_begin: %ld, comp: %ld\n", req_diff);
+    int long req_diff = rd_end - stats.req_arrival;
+//     fprintf(stderr, "rd_end: %ld, rd_begin: %ld, comp: %ld\n", req_diff);
 	
 	sprintf(buf, "HTTP/1.0 200 OK\r\n");
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
@@ -197,7 +198,6 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	//  Writes out to the client socket the memory-mapped file 
 	Rio_writen(fd, srcp, filesize);
 	Munmap(srcp, filesize);
-    Close(fd);
 
 }
 
@@ -235,8 +235,8 @@ request requestInit(request id) {
 	stats.fd = fd;
 	stats.sbuf = sbuf;
 	stats.size = sbuf.st_size;
-	stats.filename = filename;
-	stats.cgiargs = cgiargs;
+	strcpy(stats.filename, filename);
+	strcpy(stats.cgiargs, cgiargs);
 	stats.is_static = is_static;
 	return stats;
 }
@@ -249,6 +249,7 @@ void requestHandle(request stats)
 	int fd = stats.fd;
 	char filename[MAXLINE];
 	memcpy(filename, stats.filename, MAXLINE);
+    //fprintf(stderr, "thread: %d, static %d handle fn: %s\n", stats.thread_count, stats.is_static, filename);
 	char cgiargs[MAXLINE];
 	memcpy(cgiargs, stats.cgiargs, MAXLINE);
     if (is_static) {
@@ -265,4 +266,5 @@ void requestHandle(request stats)
 		}
 		requestServeDynamic(fd, filename, cgiargs, stats);
    }
+   
 }
