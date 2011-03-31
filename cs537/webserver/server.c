@@ -221,6 +221,7 @@ void consumer(int id) {
 	int thread_count = 0;
 	int thread_static = 0;
 	int thread_dynamic = 0;
+	fprintf(stderr, "threadid: %d\n", id);
 	while(1) {
 		if (DEBUG) { fprintf(stderr, "consumer start\n"); }
 		Mutex_lock(&lock);
@@ -250,8 +251,10 @@ void consumer(int id) {
 		
 		 //This could be moved outside the lock maybe? Might fix fifo test
 		Cond_signal(&empty);
+		requestHandle(stat);
         Mutex_unlock(&lock);
-        requestHandle(stat);
+		
+        
 
 		if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}
