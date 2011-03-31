@@ -122,13 +122,14 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 	sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, stats.thread_dynamic);
 
 	Rio_writen(fd, buf, strlen(buf));
-
+	fprintf(stderr, "exec - fn: %s, fd: %d cgi: %s", fn, fd, cgiargs);
 	if (Fork() == 0) {
 		/* Child process */
 		Setenv("QUERY_STRING", cgiargs, 1);
 		/* When the CGI process writes to stdout, it will instead go to the socket */
 		Dup2(fd, STDOUT_FILENO);
 		Execve(fn, emptylist, environ);
+		fprintf(stderr, "F'ING EXECVE DOESN'T F'ING EQUAL WORK. LET'S JUST WAIT AROUND FOREVER?");
 	}
 	Wait(NULL);
 }
@@ -174,7 +175,7 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	int long req_dispatch = stats.req_dispatch;
     int long rd_diff = rd_end - rd_begin;
     int long req_diff = rd_end - req_begin;
-    fprintf(stderr, "rd_end: %ld, rd_begin: %ld, comp: %ld\n", req_diff);
+/*    fprintf(stderr, "rd_end: %ld, rd_begin: %ld, comp: %ld\n", req_diff);*/
 	
 	sprintf(buf, "HTTP/1.0 200 OK\r\n");
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);

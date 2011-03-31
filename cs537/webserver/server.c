@@ -231,7 +231,9 @@ void consumer(int id) {
 		}
 		request stat = get();
         if (stat.size == -1) {
-            unix_error("get from empty queue");
+            Cond_wait(&fill, &lock);
+			
+		// Increment thread specific stats
         }
         if (stat.is_static == 0) {
             thread_dynamic++;
@@ -250,11 +252,7 @@ void consumer(int id) {
 		Cond_signal(&empty);
         Mutex_unlock(&lock);
         requestHandle(stat);
-		// Increment thread specific stats
-		
-		
-		
-        
+
 		if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}
 }
