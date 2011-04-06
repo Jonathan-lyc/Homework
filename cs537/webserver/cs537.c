@@ -67,9 +67,8 @@ pid_t Fork(void)
 
 void Execve(const char *filename, char *const argv[], char *const envp[]) 
 {
-    if (execve(filename, argv, envp) < 0) {
+    if (execve(filename, argv, envp) < 0)
         unix_error("Execve error");
-	}
 }
 
 /* $begin wait */
