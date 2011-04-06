@@ -58,6 +58,7 @@ void requestReadhdrs(rio_t *rp)
 //
 int requestParseURI(char *uri, char *filename, char *cgiargs) 
 {
+<<<<<<< HEAD
    char *ptr;
    char fn [MAXLINE];
    if (!strstr(uri, "cgi")) {
@@ -82,9 +83,43 @@ int requestParseURI(char *uri, char *filename, char *cgiargs)
       memcpy(filename, fn, MAXLINE);
       return 0;
    }
+=======
+	char *ptr;
+// 	if (!strstr(uri, "cgi")) {
+// 		fprintf(stderr, "    not found: %s\n", uri); 
+// 	}
+// 	else {
+// 		fprintf(stderr, "    found: %s\n", uri); 
+// 	}
+	if (!strstr(uri, "cgi")) {
+		// static
+		fprintf(stderr, "    staticbegin: %s\n", filename); 
+		strcpy(cgiargs, "");
+		sprintf(filename, ".%s", uri);
+		if (uri[strlen(uri)-1] == '/') {
+			strcat(filename, "home.html");
+		}
+		fprintf(stderr, "    staticend: %s\n", filename); 
+		return 1;
+	} 
+	else {
+		// dynamic
+		fprintf(stderr, "    dynamicbegin: %s\n", filename);
+		ptr = index(uri, '?');
+		if (ptr) {
+			strcpy(cgiargs, ptr+1);
+			*ptr = '\0';
+		} else {
+			strcpy(cgiargs, "");
+		}
+		fprintf(stderr, "    dynamicend: %s\n", filename); 
+		sprintf(filename, ".%s", uri);
+		return 0;
+	}
+>>>>>>> f3a98feda57a8d564cfc82d70e9bf8919f0ce1a1
 }
 
-//
+// 
 // Fills in the filetype given the filename
 //
 void requestGetFiletype(char *filename, char *filetype)
@@ -104,9 +139,20 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 //     fprintf(stdout, "dyn fn: %s, fd: %d\n", filename, fd);
     long int req_arrival, req_dispatch;
 	char buf[MAXLINE], *emptylist[] = {NULL};
-	char *fn = stats.filename;
+	char *fn = filename;
 	req_arrival = stats.req_arrival;
 	req_dispatch = stats.req_dispatch;
+	
+// 	if (strcmp(fn, "./home.html") == 0) {
+// 		fprintf(stderr, "   ERROR home in fn in exec\n");
+// 		memcpy(fn, "./output.cgi", MAXLINE);
+// 		memcpy(cgiargs, "0.3", MAXLINE);
+// 	}
+// 	if (strcmp(filename, "./home.html") == 0) {
+// 		fprintf(stderr, "   ERROR home in filename in exec\n");
+// 		memcpy(filename, "./output.cgi", MAXLINE);
+// 		memcpy(cgiargs, "0.3", MAXLINE);
+// 	}
 
 	// The server does only a little bit of the header.  
 	// The CGI script has to finish writing out the header.
@@ -124,9 +170,10 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request stats)
 	sprintf(buf, "%sStat-thread-dynamic: %d\r\n", buf, stats.thread_dynamic);
 
 	Rio_writen(fd, buf, strlen(buf));
-
 	if (Fork() == 0) {
 		/* Child process */
+// 		fprintf(stderr, "exec - fn: %s, fd: %d cgi: %s\n", fn, fd, cgiargs); // <-- proves that cgiargs is messed up and pissing me off.
+
 		Setenv("QUERY_STRING", cgiargs, 1);
 		/* When the CGI process writes to stdout, it will instead go to the socket */
 		Dup2(fd, STDOUT_FILENO);
@@ -157,7 +204,7 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	// which would require that we allocate a buffer, we memory-map the file
 	srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0);
 	Close(srcfd);
-
+// 	fprintf(stderr, "stat - fn: %s, fd: %d\n", filename, fd);
 	// The following code is only needed to help you time the "read" given 
 	// that the file is memory-mapped.  
 	// This code ensures that the memory-mapped file is brought into memory 
@@ -174,8 +221,13 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	// finish time calculations
 	int long req_dispatch = stats.req_dispatch;
     int long rd_diff = rd_end - rd_begin;
+<<<<<<< HEAD
     int long req_diff = rd_end - stats.req_arrival;
 //     fprintf(stderr, "rd_end: %ld, rd_begin: %ld, comp: %ld\n", req_diff);
+=======
+    int long req_diff = rd_end - req_begin;
+/*    fprintf(stderr, "rd_end: %ld, rd_begin: %ld, comp: %ld\n", req_diff);*/
+>>>>>>> f3a98feda57a8d564cfc82d70e9bf8919f0ce1a1
 	
 	sprintf(buf, "HTTP/1.0 200 OK\r\n");
 	sprintf(buf, "%sServer: CS537 Web Server\r\n", buf);
@@ -198,7 +250,11 @@ void requestServeStatic(int fd, char *filename, int filesize, request stats)
 	//  Writes out to the client socket the memory-mapped file 
 	Rio_writen(fd, srcp, filesize);
 	Munmap(srcp, filesize);
+<<<<<<< HEAD
 
+=======
+    Close(fd);
+>>>>>>> f3a98feda57a8d564cfc82d70e9bf8919f0ce1a1
 }
 
 request requestInit(request id) {
@@ -228,6 +284,12 @@ request requestInit(request id) {
 	requestReadhdrs(&rio);
 
 	is_static = requestParseURI(uri, filename, cgiargs);
+// 	fprintf(stderr, "          filename: %s, static: %d\n", filename, is_static);
+// 	if (is_static == 0&& strcmp(filename, "./home.html") == 0) {
+// 		fprintf(stderr, " umm fixing??\n");
+// 		memcpy(filename, "./output.cgi", MAXLINE);
+// 	}
+	
 	if (stat(filename, &sbuf) < 0) {
 		requestError(fd, filename, "404", "Not found", "CS537 Server could not find this file");
 		return stats;
@@ -235,8 +297,14 @@ request requestInit(request id) {
 	stats.fd = fd;
 	stats.sbuf = sbuf;
 	stats.size = sbuf.st_size;
+<<<<<<< HEAD
 	strcpy(stats.filename, filename);
 	strcpy(stats.cgiargs, cgiargs);
+=======
+	stats.filename = filename;
+// 	fprintf(stderr, "cgiargs b4 store: %s   ", cgiargs);
+	stats.cgiargs = cgiargs;
+>>>>>>> f3a98feda57a8d564cfc82d70e9bf8919f0ce1a1
 	stats.is_static = is_static;
 	return stats;
 }
@@ -252,6 +320,8 @@ void requestHandle(request stats)
     //fprintf(stderr, "thread: %d, static %d handle fn: %s\n", stats.thread_count, stats.is_static, filename);
 	char cgiargs[MAXLINE];
 	memcpy(cgiargs, stats.cgiargs, MAXLINE);
+// 	fprintf(stderr, "cgiargs after store: %s   ", cgiargs);
+
     if (is_static) {
 		if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)) {
 			requestError(fd, filename, "403", "Forbidden", "CS537 Server could not read this file");

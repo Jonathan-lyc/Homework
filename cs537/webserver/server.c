@@ -221,6 +221,7 @@ void consumer(int id) {
 	int thread_count = 0;
 	int thread_static = 0;
 	int thread_dynamic = 0;
+	fprintf(stderr, "threadid: %d\n", id);
 	while(1) {
 		if (DEBUG) { fprintf(stderr, "consumer start\n"); }
 		Mutex_lock(&lock);
@@ -235,7 +236,9 @@ void consumer(int id) {
 //         fprintf(stderr, "thread: %d, static: %d handle fn: %s\n", stat.thread_count, stat.is_static,  stat.filename);
         
         if (stat.size == -1) {
-            unix_error("get from empty queue");
+            Cond_wait(&fill, &lock);
+			
+		// Increment thread specific stats
         }
         if (stat.is_static == 0) {
             thread_dynamic++;
@@ -252,10 +255,16 @@ void consumer(int id) {
 		
 		 //This could be moved outside the lock maybe? Might fix fifo test
 		Cond_signal(&empty);
+		requestHandle(stat);
         Mutex_unlock(&lock);
+<<<<<<< HEAD
         requestHandle(stat);
         Close(stat.fd);
+=======
+		
+>>>>>>> f3a98feda57a8d564cfc82d70e9bf8919f0ce1a1
         
+
 		if (DEBUG) { fprintf(stderr, "consumer end\n"); }
 	}
 }
