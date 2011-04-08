@@ -7,6 +7,7 @@
 #include "fs.h"
 #include "file.h"
 #include "fcntl.h"
+#include "sysfile.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -389,3 +390,37 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int count_array[23];
+int inits = 0;
+
+void
+updatecount(int syscall) {
+  if (inits == 0) {
+    int i;
+    for (i = 0; i < 23; i++) {
+      count_array[i] = 0;
+     }
+  }
+  inits = 1;
+  count_array[syscall]++;
+}
+
+int
+getcount(void)
+{
+  int *counts; //Passed in pointer
+  int size;
+  if(argint(1, &size) < 0 || argptr(0, (void*)&counts, size) < 0)
+    return -1;
+  if (size < 23 || counts == 0) {
+    return -1;
+  }
+  int i;
+  for (i = 0; i < 23; i++) {
+    counts[i] = count_array[i];
+  }
+  return 0;
+
+}
+

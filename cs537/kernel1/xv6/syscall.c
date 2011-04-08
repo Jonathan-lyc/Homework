@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "syscall.h"
 #include "spinlock.h"
+#include "sysfile.h"
 
 // User code makes a system call with INT T_SYSCALL.
 // System call number in %eax.
@@ -98,10 +99,10 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
-extern int getcount(int *counts, int size);
+extern int getcount(void);
 
 // Static array to keep track of the counts for each syscall
-static int count[23];
+extern int count_array[23];
 
 // Lock for spinlocking
 struct spinlock lock;
@@ -110,26 +111,23 @@ struct spinlock lock;
 int init = 0;
 
 // Initializes data structures for getcount()
-int getcountinit() {
+void getcountinit() {
   initlock(&lock, "getcount lock");
-  int i;
-  for (i = 0; i < 23; i++) {
-    count[i] = 0;
-  }
+  init = 1;
 }
 
 // Fills counts with the counter values for each syscall.
 // Returns -1 on failure, 0 on success.
-int getcount(int *counts, int size) {
-  if (size < 23 || counts == 0) {
-    return -1;
-  }
-  int i;
-  for (i = 0; i < 23; i++) {
-    counts[i] = count[i];
-  }
-  return 0;
-}
+//int getcount(int *counts, int size) {
+  //if (size < 23 || counts == 0) {
+    //return -1;
+  //}
+  //int i;
+  //for (i = 0; i < 23; i++) {
+    //counts[i] = count[i];
+  //}
+  //return 0;
+//}
 
 static int (*syscalls[])(void) = {
 [SYS_chdir]   sys_chdir,
@@ -167,7 +165,7 @@ syscall(void)
 
   num = proc->tf->eax;
   acquire(&lock);
-  count[num]++;
+  updatecount(num);
   release(&lock);
   if(num >= 0 && num < NELEM(syscalls) && syscalls[num])
     proc->tf->eax = syscalls[num]();

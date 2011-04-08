@@ -2516,14 +2516,12 @@ SYSCALL(uptime)
      f10:	b8 15 00 00 00       	mov    $0x15,%eax
      f15:	cd 40                	int    $0x40
      f17:	c3                   	ret    
-     f18:	90                   	nop
-     f19:	90                   	nop
-     f1a:	90                   	nop
-     f1b:	90                   	nop
-     f1c:	90                   	nop
-     f1d:	90                   	nop
-     f1e:	90                   	nop
-     f1f:	90                   	nop
+
+00000f18 <getcount>:
+SYSCALL(getcount)
+     f18:	b8 16 00 00 00       	mov    $0x16,%eax
+     f1d:	cd 40                	int    $0x40
+     f1f:	c3                   	ret    
 
 00000f20 <printint>:
   write(fd, &c, 1);

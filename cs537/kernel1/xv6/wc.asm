@@ -902,14 +902,12 @@ SYSCALL(uptime)
  460:	b8 15 00 00 00       	mov    $0x15,%eax
  465:	cd 40                	int    $0x40
  467:	c3                   	ret    
- 468:	90                   	nop
- 469:	90                   	nop
- 46a:	90                   	nop
- 46b:	90                   	nop
- 46c:	90                   	nop
- 46d:	90                   	nop
- 46e:	90                   	nop
- 46f:	90                   	nop
+
+00000468 <getcount>:
+SYSCALL(getcount)
+ 468:	b8 16 00 00 00       	mov    $0x16,%eax
+ 46d:	cd 40                	int    $0x40
+ 46f:	c3                   	ret    
 
 00000470 <printint>:
   write(fd, &c, 1);

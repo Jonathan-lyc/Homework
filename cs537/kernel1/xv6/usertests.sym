@@ -16,7 +16,7 @@
 00000000 ulib.c
 00000000 printf.c
 000034a0 printint
-00004de7 digits.907
+00004de7 digits.910
 00000000 umalloc.c
 00004e28 freep
 00004e20 base
@@ -63,6 +63,7 @@
 000022a0 createtest
 000030c0 main
 00001f60 createdelete
+00003498 getcount
 00003200 strcmp
 00002540 writetest
 00003470 dup

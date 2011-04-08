@@ -765,14 +765,12 @@ SYSCALL(uptime)
  3e0:	b8 15 00 00 00       	mov    $0x15,%eax
  3e5:	cd 40                	int    $0x40
  3e7:	c3                   	ret    
- 3e8:	90                   	nop
- 3e9:	90                   	nop
- 3ea:	90                   	nop
- 3eb:	90                   	nop
- 3ec:	90                   	nop
- 3ed:	90                   	nop
- 3ee:	90                   	nop
- 3ef:	90                   	nop
+
+000003e8 <getcount>:
+SYSCALL(getcount)
+ 3e8:	b8 16 00 00 00       	mov    $0x16,%eax
+ 3ed:	cd 40                	int    $0x40
+ 3ef:	c3                   	ret    
 
 000003f0 <printint>:
   write(fd, &c, 1);

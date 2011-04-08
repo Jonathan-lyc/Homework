@@ -13,11 +13,11 @@
 00000000 .debug_loc
 00000000 .debug_ranges
 00000000 sh.c
-00001460 buf.986
+00001460 buf.989
 00000000 ulib.c
 00000000 printf.c
 00000f20 printint
-00001426 digits.907
+00001426 digits.910
 00000000 umalloc.c
 000014cc freep
 000014c4 base
@@ -61,6 +61,7 @@
 00001448 __bss_start
 00000cf0 memset
 00000b70 main
+00000f18 getcount
 00000c80 strcmp
 00000ef0 dup
 00000320 pipecmd

@@ -15,7 +15,7 @@
 00000000 ulib.c
 00000000 printf.c
 00000600 printint
-00000a55 digits.907
+00000a55 digits.910
 00000000 umalloc.c
 00000a88 freep
 00000a80 base
@@ -45,6 +45,7 @@
 000003d0 memset
 00000260 main
 00000000 matchstar
+000005f8 getcount
 00000360 strcmp
 000005d0 dup
 00000aa0 buf

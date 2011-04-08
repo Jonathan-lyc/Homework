@@ -1204,14 +1204,12 @@ SYSCALL(uptime)
  5f0:	b8 15 00 00 00       	mov    $0x15,%eax
  5f5:	cd 40                	int    $0x40
  5f7:	c3                   	ret    
- 5f8:	90                   	nop
- 5f9:	90                   	nop
- 5fa:	90                   	nop
- 5fb:	90                   	nop
- 5fc:	90                   	nop
- 5fd:	90                   	nop
- 5fe:	90                   	nop
- 5ff:	90                   	nop
+
+000005f8 <getcount>:
+SYSCALL(getcount)
+ 5f8:	b8 16 00 00 00       	mov    $0x16,%eax
+ 5fd:	cd 40                	int    $0x40
+ 5ff:	c3                   	ret    
 
 00000600 <printint>:
   write(fd, &c, 1);
