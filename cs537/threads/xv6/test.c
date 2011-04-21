@@ -4,9 +4,8 @@
 
 int
 main (int argc, char* argv[]) {
-  int size = 4;
-  int stack[size];
-  int i = clone((void *) stack, size);
+  printf(1, "test");
+  int i = clone(malloc(4096), 4096);
   printf(1, "i = %d", i);
   exit();
 }

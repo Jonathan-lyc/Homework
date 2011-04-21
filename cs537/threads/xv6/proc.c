@@ -168,12 +168,14 @@ clone(void)
     return -1;
 
   // Copy process state from p.
-  if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
-    kfree(np->kstack);
-    np->kstack = 0;
-    np->state = UNUSED;
-    return -1;
-  }
+  //if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+    //kfree(np->kstack);
+    //np->kstack = 0;
+    //np->state = UNUSED;
+    //return -1;
+  //}
+  np->pgdir = proc->pgdir;
+  //This might be an issue later.
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
@@ -185,14 +187,15 @@ clone(void)
     return -1;
   }
 
-  // Clear %eax so that fork returns 0 in the child.
+  // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
+  np->kstack = (void *)proc->tf->eip;
 
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
- 
+
   pid = np->pid;
   np->state = RUNNABLE;
   safestrcpy(np->name, proc->name, sizeof(proc->name));
