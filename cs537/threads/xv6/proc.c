@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "spinlock.h"
 
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -160,6 +161,7 @@ fork(void)
 int
 clone(void)
 {
+  char* stack;
   int i, pid, size;
   struct proc *np;
 
@@ -167,20 +169,15 @@ clone(void)
   if((np = allocproc()) == 0)
     return -1;
 
-  // Copy process state from p.
-  //if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
-    //kfree(np->kstack);
-    //np->kstack = 0;
-    //np->state = UNUSED;
-    //return -1;
-  //}
+
+  //Point page dir at parent's page dir (shared memory)
   np->pgdir = proc->pgdir;
   //This might be an issue later.
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
 
-  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &np->kstack, size) < 0) {
+  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
@@ -189,8 +186,11 @@ clone(void)
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
-  np->kstack = (void *)proc->tf->eip;
+  np->tf->esp = (uint)stack;
 
+  *stack = proc->tf->eip;
+  stack++;
+  
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);

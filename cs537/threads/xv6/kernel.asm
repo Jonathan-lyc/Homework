@@ -9424,6 +9424,7 @@ clone(void)
   103711:	89 e5                	mov    %esp,%ebp
   103713:	57                   	push   %edi
   103714:	56                   	push   %esi
+  char* stack;
   int i, pid, size;
   struct proc *np;
 
@@ -9438,6 +9439,7 @@ clone(void)
 {
   10371a:	53                   	push   %ebx
   10371b:	83 ec 2c             	sub    $0x2c,%esp
+  char* stack;
   int i, pid, size;
   struct proc *np;
 
@@ -9446,12 +9448,11 @@ clone(void)
   10371e:	e8 0d ff ff ff       	call   103630 <allocproc>
   103723:	85 c0                	test   %eax,%eax
   103725:	89 c3                	mov    %eax,%ebx
-  103727:	0f 84 fe 00 00 00    	je     10382b <clone+0x11b>
-    //kfree(np->kstack);
-    //np->kstack = 0;
-    //np->state = UNUSED;
-    //return -1;
-  //}
+  103727:	0f 84 06 01 00 00    	je     103833 <clone+0x123>
+    return -1;
+
+
+  //Point page dir at parent's page dir (shared memory)
   np->pgdir = proc->pgdir;
   10372d:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
   //This might be an issue later.
@@ -9459,11 +9460,11 @@ clone(void)
   np->parent = proc;
   *np->tf = *proc->tf;
   103733:	b9 13 00 00 00       	mov    $0x13,%ecx
-    //kfree(np->kstack);
-    //np->kstack = 0;
-    //np->state = UNUSED;
-    //return -1;
-  //}
+  if((np = allocproc()) == 0)
+    return -1;
+
+
+  //Point page dir at parent's page dir (shared memory)
   np->pgdir = proc->pgdir;
   103738:	8b 40 04             	mov    0x4(%eax),%eax
   10373b:	89 43 04             	mov    %eax,0x4(%ebx)
@@ -9482,23 +9483,23 @@ clone(void)
   10375e:	89 c7                	mov    %eax,%edi
   103760:	f3 a5                	rep movsl %ds:(%esi),%es:(%edi)
 
-  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &np->kstack, size) < 0) {
-  103762:	8d 45 e4             	lea    -0x1c(%ebp),%eax
+  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
+  103762:	8d 45 e0             	lea    -0x20(%ebp),%eax
   103765:	89 44 24 04          	mov    %eax,0x4(%esp)
   103769:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   103770:	e8 4b 08 00 00       	call   103fc0 <argint>
   103775:	85 c0                	test   %eax,%eax
-  103777:	0f 88 b8 00 00 00    	js     103835 <clone+0x125>
-  10377d:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+  103777:	0f 88 c0 00 00 00    	js     10383d <clone+0x12d>
+  10377d:	8b 45 e0             	mov    -0x20(%ebp),%eax
   103780:	85 c0                	test   %eax,%eax
-  103782:	0f 8e ad 00 00 00    	jle    103835 <clone+0x125>
+  103782:	0f 8e b5 00 00 00    	jle    10383d <clone+0x12d>
   103788:	89 44 24 08          	mov    %eax,0x8(%esp)
-  10378c:	8d 43 08             	lea    0x8(%ebx),%eax
+  10378c:	8d 45 e4             	lea    -0x1c(%ebp),%eax
   10378f:	89 44 24 04          	mov    %eax,0x4(%esp)
   103793:	c7 04 24 00 00 00 00 	movl   $0x0,(%esp)
   10379a:	e8 61 08 00 00       	call   104000 <argptr>
   10379f:	85 c0                	test   %eax,%eax
-  1037a1:	0f 88 8e 00 00 00    	js     103835 <clone+0x125>
+  1037a1:	0f 88 96 00 00 00    	js     10383d <clone+0x12d>
     np->state = UNUSED;
     return -1;
   }
@@ -9506,7 +9507,10 @@ clone(void)
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
   1037a7:	8b 43 18             	mov    0x18(%ebx),%eax
-  np->kstack = (void *)proc->tf->eip;
+  np->tf->esp = (uint)stack;
+
+  *stack = proc->tf->eip;
+  stack++;
   1037aa:	31 f6                	xor    %esi,%esi
     np->state = UNUSED;
     return -1;
@@ -9515,98 +9519,104 @@ clone(void)
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
   1037ac:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%eax)
-  np->kstack = (void *)proc->tf->eip;
-  1037b3:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
-  1037b9:	8b 40 18             	mov    0x18(%eax),%eax
-  1037bc:	8b 40 38             	mov    0x38(%eax),%eax
-  1037bf:	89 43 08             	mov    %eax,0x8(%ebx)
-  1037c2:	65 8b 15 04 00 00 00 	mov    %gs:0x4,%edx
-  1037c9:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
+  np->tf->esp = (uint)stack;
+  1037b3:	8b 43 18             	mov    0x18(%ebx),%eax
+  1037b6:	8b 55 e4             	mov    -0x1c(%ebp),%edx
+  1037b9:	89 50 44             	mov    %edx,0x44(%eax)
 
+  *stack = proc->tf->eip;
+  1037bc:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
+  1037c2:	8b 40 18             	mov    0x18(%eax),%eax
+  1037c5:	8b 50 38             	mov    0x38(%eax),%edx
+  1037c8:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+  1037cb:	88 10                	mov    %dl,(%eax)
+  stack++;
+  1037cd:	65 8b 15 04 00 00 00 	mov    %gs:0x4,%edx
+  1037d4:	83 45 e4 01          	addl   $0x1,-0x1c(%ebp)
+  
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
-  1037d0:	8b 44 b2 28          	mov    0x28(%edx,%esi,4),%eax
-  1037d4:	85 c0                	test   %eax,%eax
-  1037d6:	74 13                	je     1037eb <clone+0xdb>
+  1037d8:	8b 44 b2 28          	mov    0x28(%edx,%esi,4),%eax
+  1037dc:	85 c0                	test   %eax,%eax
+  1037de:	74 13                	je     1037f3 <clone+0xe3>
       np->ofile[i] = filedup(proc->ofile[i]);
-  1037d8:	89 04 24             	mov    %eax,(%esp)
-  1037db:	e8 c0 d6 ff ff       	call   100ea0 <filedup>
-  1037e0:	89 44 b3 28          	mov    %eax,0x28(%ebx,%esi,4)
-  1037e4:	65 8b 15 04 00 00 00 	mov    %gs:0x4,%edx
+  1037e0:	89 04 24             	mov    %eax,(%esp)
+  1037e3:	e8 b8 d6 ff ff       	call   100ea0 <filedup>
+  1037e8:	89 44 b3 28          	mov    %eax,0x28(%ebx,%esi,4)
+  1037ec:	65 8b 15 04 00 00 00 	mov    %gs:0x4,%edx
+  np->tf->esp = (uint)stack;
 
-  // Clear %eax so that clone returns 0 in the child.
-  np->tf->eax = 0;
-  np->kstack = (void *)proc->tf->eip;
-
+  *stack = proc->tf->eip;
+  stack++;
+  
   for(i = 0; i < NOFILE; i++)
-  1037eb:	83 c6 01             	add    $0x1,%esi
-  1037ee:	83 fe 10             	cmp    $0x10,%esi
-  1037f1:	75 dd                	jne    1037d0 <clone+0xc0>
+  1037f3:	83 c6 01             	add    $0x1,%esi
+  1037f6:	83 fe 10             	cmp    $0x10,%esi
+  1037f9:	75 dd                	jne    1037d8 <clone+0xc8>
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
-  1037f3:	8b 42 68             	mov    0x68(%edx),%eax
-  1037f6:	89 04 24             	mov    %eax,(%esp)
-  1037f9:	e8 a2 d8 ff ff       	call   1010a0 <idup>
+  1037fb:	8b 42 68             	mov    0x68(%edx),%eax
+  1037fe:	89 04 24             	mov    %eax,(%esp)
+  103801:	e8 9a d8 ff ff       	call   1010a0 <idup>
 
   pid = np->pid;
-  1037fe:	8b 73 10             	mov    0x10(%ebx),%esi
+  103806:	8b 73 10             	mov    0x10(%ebx),%esi
   np->state = RUNNABLE;
-  103801:	c7 43 0c 03 00 00 00 	movl   $0x3,0xc(%ebx)
-  np->kstack = (void *)proc->tf->eip;
-
+  103809:	c7 43 0c 03 00 00 00 	movl   $0x3,0xc(%ebx)
+  stack++;
+  
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
-  103808:	89 43 68             	mov    %eax,0x68(%ebx)
+  103810:	89 43 68             	mov    %eax,0x68(%ebx)
 
   pid = np->pid;
   np->state = RUNNABLE;
   safestrcpy(np->name, proc->name, sizeof(proc->name));
-  10380b:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
-  103811:	83 c3 6c             	add    $0x6c,%ebx
-  103814:	c7 44 24 08 10 00 00 	movl   $0x10,0x8(%esp)
-  10381b:	00 
-  10381c:	89 1c 24             	mov    %ebx,(%esp)
-  10381f:	83 c0 6c             	add    $0x6c,%eax
-  103822:	89 44 24 04          	mov    %eax,0x4(%esp)
-  103826:	e8 95 06 00 00       	call   103ec0 <safestrcpy>
+  103813:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
+  103819:	83 c3 6c             	add    $0x6c,%ebx
+  10381c:	c7 44 24 08 10 00 00 	movl   $0x10,0x8(%esp)
+  103823:	00 
+  103824:	89 1c 24             	mov    %ebx,(%esp)
+  103827:	83 c0 6c             	add    $0x6c,%eax
+  10382a:	89 44 24 04          	mov    %eax,0x4(%esp)
+  10382e:	e8 8d 06 00 00       	call   103ec0 <safestrcpy>
   return pid;
 }
-  10382b:	83 c4 2c             	add    $0x2c,%esp
-  10382e:	89 f0                	mov    %esi,%eax
-  103830:	5b                   	pop    %ebx
-  103831:	5e                   	pop    %esi
-  103832:	5f                   	pop    %edi
-  103833:	5d                   	pop    %ebp
-  103834:	c3                   	ret    
+  103833:	83 c4 2c             	add    $0x2c,%esp
+  103836:	89 f0                	mov    %esi,%eax
+  103838:	5b                   	pop    %ebx
+  103839:	5e                   	pop    %esi
+  10383a:	5f                   	pop    %edi
+  10383b:	5d                   	pop    %ebp
+  10383c:	c3                   	ret    
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
 
-  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &np->kstack, size) < 0) {
+  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
     kfree(np->kstack);
-  103835:	8b 43 08             	mov    0x8(%ebx),%eax
+  10383d:	8b 43 08             	mov    0x8(%ebx),%eax
     np->kstack = 0;
     np->state = UNUSED;
-  103838:	be ff ff ff ff       	mov    $0xffffffff,%esi
+  103840:	be ff ff ff ff       	mov    $0xffffffff,%esi
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
 
-  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &np->kstack, size) < 0) {
+  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
     kfree(np->kstack);
-  10383d:	89 04 24             	mov    %eax,(%esp)
-  103840:	e8 4b ea ff ff       	call   102290 <kfree>
+  103845:	89 04 24             	mov    %eax,(%esp)
+  103848:	e8 43 ea ff ff       	call   102290 <kfree>
     np->kstack = 0;
-  103845:	c7 43 08 00 00 00 00 	movl   $0x0,0x8(%ebx)
+  10384d:	c7 43 08 00 00 00 00 	movl   $0x0,0x8(%ebx)
     np->state = UNUSED;
-  10384c:	c7 43 0c 00 00 00 00 	movl   $0x0,0xc(%ebx)
+  103854:	c7 43 0c 00 00 00 00 	movl   $0x0,0xc(%ebx)
     return -1;
-  103853:	eb d6                	jmp    10382b <clone+0x11b>
-  103855:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
-  103859:	8d bc 27 00 00 00 00 	lea    0x0(%edi,%eiz,1),%edi
+  10385b:	eb d6                	jmp    103833 <clone+0x123>
+  10385d:	8d 76 00             	lea    0x0(%esi),%esi
 
 00103860 <fork>:
 // Create a new process copying p as the parent.
