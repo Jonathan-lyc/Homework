@@ -6,7 +6,6 @@
 #include "proc.h"
 #include "spinlock.h"
 
-
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -164,11 +163,10 @@ clone(void)
   char* stack;
   int i, pid, size;
   struct proc *np;
-
+  printf(1, "a");
   // Allocate process.
   if((np = allocproc()) == 0)
     return -1;
-
 
   //Point page dir at parent's page dir (shared memory)
   np->pgdir = proc->pgdir;
@@ -176,19 +174,20 @@ clone(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
-
+  
   if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
     return -1;
   }
+  
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
   np->tf->esp = (uint)stack;
 
-  *stack = proc->tf->eip;
+  stack[0] = proc->tf->eip;
   stack++;
   
   for(i = 0; i < NOFILE; i++)

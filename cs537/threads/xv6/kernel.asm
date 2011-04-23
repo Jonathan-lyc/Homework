@@ -9449,9 +9449,10 @@ clone(void)
   103723:	85 c0                	test   %eax,%eax
   103725:	89 c3                	mov    %eax,%ebx
   103727:	0f 84 06 01 00 00    	je     103833 <clone+0x123>
-    return -1;
 
 
+ 
+  
   //Point page dir at parent's page dir (shared memory)
   np->pgdir = proc->pgdir;
   10372d:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
@@ -9460,10 +9461,10 @@ clone(void)
   np->parent = proc;
   *np->tf = *proc->tf;
   103733:	b9 13 00 00 00       	mov    $0x13,%ecx
-  if((np = allocproc()) == 0)
-    return -1;
 
 
+ 
+  
   //Point page dir at parent's page dir (shared memory)
   np->pgdir = proc->pgdir;
   103738:	8b 40 04             	mov    0x4(%eax),%eax
@@ -9482,7 +9483,7 @@ clone(void)
   10375b:	8b 72 18             	mov    0x18(%edx),%esi
   10375e:	89 c7                	mov    %eax,%edi
   103760:	f3 a5                	rep movsl %ds:(%esi),%es:(%edi)
-
+  
   if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
   103762:	8d 45 e0             	lea    -0x20(%ebp),%eax
   103765:	89 44 24 04          	mov    %eax,0x4(%esp)
@@ -9500,21 +9501,21 @@ clone(void)
   10379a:	e8 61 08 00 00       	call   104000 <argptr>
   10379f:	85 c0                	test   %eax,%eax
   1037a1:	0f 88 96 00 00 00    	js     10383d <clone+0x12d>
-    np->state = UNUSED;
     return -1;
   }
+  
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
   1037a7:	8b 43 18             	mov    0x18(%ebx),%eax
   np->tf->esp = (uint)stack;
 
-  *stack = proc->tf->eip;
+  stack[0] = proc->tf->eip;
   stack++;
   1037aa:	31 f6                	xor    %esi,%esi
-    np->state = UNUSED;
     return -1;
   }
+  
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
@@ -9524,7 +9525,7 @@ clone(void)
   1037b6:	8b 55 e4             	mov    -0x1c(%ebp),%edx
   1037b9:	89 50 44             	mov    %edx,0x44(%eax)
 
-  *stack = proc->tf->eip;
+  stack[0] = proc->tf->eip;
   1037bc:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
   1037c2:	8b 40 18             	mov    0x18(%eax),%eax
   1037c5:	8b 50 38             	mov    0x38(%eax),%edx
@@ -9546,7 +9547,7 @@ clone(void)
   1037ec:	65 8b 15 04 00 00 00 	mov    %gs:0x4,%edx
   np->tf->esp = (uint)stack;
 
-  *stack = proc->tf->eip;
+  stack[0] = proc->tf->eip;
   stack++;
   
   for(i = 0; i < NOFILE; i++)
@@ -9595,7 +9596,7 @@ clone(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
-
+  
   if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
     kfree(np->kstack);
   10383d:	8b 43 08             	mov    0x8(%ebx),%eax
@@ -9605,7 +9606,7 @@ clone(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
-
+  
   if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
     kfree(np->kstack);
   103845:	89 04 24             	mov    %eax,(%esp)
