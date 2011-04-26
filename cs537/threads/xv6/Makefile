@@ -1,4 +1,5 @@
 OBJS = \
+	thread.o\
 	bio.o\
 	console.o\
 	exec.o\

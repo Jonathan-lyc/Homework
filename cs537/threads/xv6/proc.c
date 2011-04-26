@@ -163,7 +163,7 @@ clone(void)
   char* stack;
   int i, pid, size;
   struct proc *np;
-  printf(1, "a");
+  cprintf("a\n");
   // Allocate process.
   if((np = allocproc()) == 0)
     return -1;
@@ -181,14 +181,17 @@ clone(void)
     np->state = UNUSED;
     return -1;
   }
-  
+//   cprintf("stack inside %d\n", stack[0]);
+
+  cprintf("esp: %d\n", proc->tf->esp);
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
   np->tf->esp = (uint)stack;
-
-  stack[0] = proc->tf->eip;
-  stack++;
+  np->context->eip = proc->context->eip;
+  np->tf->eip = proc->tf->eip;
+/*  stack[0] = proc->tf->eip;*/
+/*  stack += 4;*/
   
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
@@ -262,7 +265,9 @@ wait(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
-        freevm(p->pgdir);
+        if (p->pgdir != p->parent->pgdir) {
+          freevm(p->pgdir);
+        }
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
@@ -480,6 +485,4 @@ procdump(void)
     }
     cprintf("\n");
   }
-}
-
-
+} 
