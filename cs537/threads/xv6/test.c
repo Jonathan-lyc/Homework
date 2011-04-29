@@ -20,9 +20,13 @@ void update(int runs) {
 
 void thread_create(void *(*start_routine)(void*), void *arg)
 {
+//   Possibly need to lock around creating the stack and calling clone
+//   lock_acquire(&t);
   char* stack = malloc(4096);
   clone(stack, 4096);
+//   lock_release(&t);
   (*start_routine)(arg);
+  
   return;
 }
 /*  printf(1, "Clone returns = %d\n", rc);*/

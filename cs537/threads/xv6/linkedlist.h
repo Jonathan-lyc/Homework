@@ -25,6 +25,7 @@ ll_add(int i){
 /*    printf(1, "currnext = %d\n", curr->next);*/
 	
   }
+  printf(1, "c:%d ", count + 1); 
   count++;
 }
 
