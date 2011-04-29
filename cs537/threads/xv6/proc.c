@@ -160,39 +160,71 @@ fork(void)
 int
 clone(void)
 {
+  char* stack;
   int i, pid, size;
   struct proc *np;
-
+  cprintf("a\n");
   // Allocate process.
   if((np = allocproc()) == 0)
     return -1;
 
-  // Copy process state from p.
-  if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
-    kfree(np->kstack);
-    np->kstack = 0;
-    np->state = UNUSED;
-    return -1;
-  }
+  // Point page dir at parent's page dir (shared memory)
+  np->pgdir = proc->pgdir;
+  // This might be an issue later.
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
-
-  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &np->kstack, size) < 0) {
+  
+  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
     return -1;
   }
 
-  // Clear %eax so that fork returns 0 in the child.
+  // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
+
+  //memmove(stack, proc->pstack - size, size);
+  char *s = (char *) proc->pstack - size;
+  char *d = (char *) stack;
+  for (i = 0; i < 4096; i++) {
+    *d++ = *s++;
+  }
+
+/*  uint *j;
+  uint k;
+  for (j = (uint *)stack, k =0; k < size/10 - 1; j++, k++) {
+    cprintf("%x\n" , *j);
+  }*/
+
+  int offset = (uint)proc->pstack - (uint)proc->tf->esp;
+  cprintf("offset = %x, size = %x\n", offset, size);
+  cprintf("%x %x %x\n", proc->pstack, stack, proc->tf->esp);
+  np->tf->esp = (uint)stack + PGSIZE;
+  cprintf("PGSIZE:%x ALMOST NEW ESP:%x\n", PGSIZE, np->tf->esp);
+  np->tf->esp -= offset;
+  cprintf("PGSIZE:%x NEW ESP:%x\n", PGSIZE, np->tf->esp);
+
+  cprintf("Child esp points to: %x\n", *(uint *)np->tf->esp);
+  cprintf("Child esp + 4 points to: %x\n", *((uint *)np->tf->esp + 4));
+  cprintf("Child esp + 8 points to: %x\n", *((uint *)np->tf->esp + 8));
+  cprintf("Parent esp points to: %x\n", *(uint *)proc->tf->esp);
+  
+  
+//   cprintf("esp: %x\n", np->tf->esp);
+  
+//   cprintf("pstack: %x\n", proc->pstack);
+//   cprintf("childstack: %x\n", stack);
+
+  
+// esp needs to point at the same relative spot in it's own copy of the stack.
 
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
- 
+
   pid = np->pid;
   np->state = RUNNABLE;
   safestrcpy(np->name, proc->name, sizeof(proc->name));
@@ -260,7 +292,9 @@ wait(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
-        freevm(p->pgdir);
+        if (p->pgdir != p->parent->pgdir) {
+          freevm(p->pgdir);
+        }
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
@@ -479,5 +513,3 @@ procdump(void)
     cprintf("\n");
   }
 }
-
-

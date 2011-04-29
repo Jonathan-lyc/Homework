@@ -1,1 +1,1 @@
-test.o test.d : test.c types.h stat.h user.h
+test.o test.d : test.c types.h stat.h user.h linkedlist.h thread.h

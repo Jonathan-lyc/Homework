@@ -48,10 +48,14 @@ exec(char *path, char **argv)
   iunlockput(ip);
   ip = 0;
 
-  // Allocate a one-page stack at the next page boundary
+  // Allocate a one-page stack at the next page boundary  
   sz = PGROUNDUP(sz);
+  
   if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
     goto bad;
+
+  proc->pstack = (uint *)sz;
+//  proc->pstack2 = (uint *)sz + PGSIZE;
 
   // Push argument strings, prepare rest of stack in ustack.
   sp = sz;

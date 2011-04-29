@@ -1,0 +1,8 @@
+(c) Hoes and Tricks LLC 2011
+
+Changes:
+  proc.c:
+    wait():
+      Added if statement so the children don't clean up the memory.
+      Only parent will clean it up, and will be last to exit.
+
