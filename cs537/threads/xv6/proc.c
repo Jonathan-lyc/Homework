@@ -181,6 +181,7 @@ clone(void)
     np->state = UNUSED;
     return -1;
   }
+//   cprintf("stack inside %d\n", stack[0]);
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;

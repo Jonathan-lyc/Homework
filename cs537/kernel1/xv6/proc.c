@@ -157,9 +157,48 @@ fork(void)
   return pid;
 }
 
-// Exit the current process.  Does not return.
-// An exited process remains in the zombie state
-// until its parent calls wait() to find out it exited.
+int
+clone(void)
+{
+  char* stack;
+  int i, pid, size;
+  struct proc *np;
+  cprintf("a\n");
+  // Allocate process.
+  if((np = allocproc()) == 0)
+    return -1;
+
+  // Point page dir at parent's page dir (shared memory)
+  np->pgdir = proc->pgdir;
+  // This might be an issue later.
+  np->sz = proc->sz;
+  np->parent = proc;
+  *np->tf = *proc->tf;
+  
+  if(argint(1, &size) < 0 || size <= 0 || argptr(0, &stack, size) < 0) {
+    kfree(np->kstack);
+    np->kstack = 0;
+    np->state = UNUSED;
+    return -1;
+  }
+
+  // Clear %eax so that clone returns 0 in the child.
+  np->tf->eax = 0;
+  *stack = *proc->pstack;
+  np->tf->esp = proc->tf->esp;
+// esp needs to point at the same relative spot in it's own copy of the stack.
+
+  for(i = 0; i < NOFILE; i++)
+    if(proc->ofile[i])
+      np->ofile[i] = filedup(proc->ofile[i]);
+  np->cwd = idup(proc->cwd);
+
+  pid = np->pid;
+  np->state = RUNNABLE;
+  safestrcpy(np->name, proc->name, sizeof(proc->name));
+  return pid;
+}
+
 void
 exit(void)
 {
@@ -221,7 +260,9 @@ wait(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
-        freevm(p->pgdir);
+        if (p->pgdir != p->parent->pgdir) {
+          freevm(p->pgdir);
+        }
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
@@ -439,6 +480,4 @@ procdump(void)
     }
     cprintf("\n");
   }
-}
-
-
+} 
