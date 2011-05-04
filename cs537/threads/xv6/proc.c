@@ -168,9 +168,9 @@ clone(void)
   if((np = allocproc()) == 0)
     return -1;
 
-  //Point page dir at parent's page dir (shared memory)
+  // Point page dir at parent's page dir (shared memory)
   np->pgdir = proc->pgdir;
-  //This might be an issue later.
+  // This might be an issue later.
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
@@ -181,18 +181,35 @@ clone(void)
     np->state = UNUSED;
     return -1;
   }
-//   cprintf("stack inside %d\n", stack[0]);
-
-  cprintf("esp: %d\n", proc->tf->esp);
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
-  np->tf->esp = (uint)stack;
-  np->context->eip = proc->context->eip;
-  np->tf->eip = proc->tf->eip;
-/*  stack[0] = proc->tf->eip;*/
-/*  stack += 4;*/
+
+//   cprintf("pstack: %x\n", proc->pstack);
+// /*  cprintf("pstack2: %x\n", proc->pstack2);*/
+//   cprintf("esp: %x\n", proc->tf->esp);
+  memmove(stack, proc->pstack - size + 1, size - 1);
+//   cprintf("shizzle: %x\n", proc->context->ebp);
+/*  uint *j;
+  uint k;
+  for (j = (uint *)stack, k =0; k < size/10 - 1; j++, k++) {
+    cprintf("%x\n" , *j);
+  }*/
+/*  cprintf("%x + 1000 - %x - ( %x - %x)\n", (uint)stack, (uint)proc->pstack, (uint)proc->pstack, (uint)proc->tf->esp);*/
+//   np->tf->esp = (uint)stack + PGSIZE - (uint)proc->pstack - ((uint)proc->pstack - (uint)proc->tf->esp);
+  np->tf->esp = 0x9fbc;
+  cprintf("b: %x\n", *(uint *)np->tf->esp);
   
+  
+//   cprintf("esp: %x\n", np->tf->esp);
+/*  *(uint *)np->tf->esp = *(uint *)proc->tf->esp;*/
+  
+//   cprintf("pstack: %x\n", proc->pstack);
+//   cprintf("childstack: %x\n", stack);
+
+  
+// esp needs to point at the same relative spot in it's own copy of the stack.
+
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);

@@ -1,1 +1,0 @@
-void updatecount(int syscall);
