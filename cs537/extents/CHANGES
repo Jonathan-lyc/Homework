@@ -1,0 +1,9 @@
+fcntl.h - Added O_EXTENT
+stat.h - Added file type T_EXTENT
+
+To check/change - 
+Everytime someone touches addrs[]
+read() write() open() 
+sysfile.c create()
+
+For addrs: 32bit array, first 3 bytes for pointer, last byte for size. use shifts to make this work.

@@ -322,6 +322,11 @@ bmap(struct inode *ip, uint bn)
   uint addr, *a;
   struct buf *bp;
 
+  if (ip->type == T_EXTENT) {
+    // Deal with extent based shizzle
+    return 0;
+  }
+
   if(bn < NDIRECT){
     if((addr = ip->addrs[bn]) == 0)
       ip->addrs[bn] = addr = balloc(ip->dev);
