@@ -4,6 +4,7 @@ struct node {
 };
 
 struct node *head;
+int count = 0;
 
 void
 ll_add(int i){
@@ -22,7 +23,10 @@ ll_add(int i){
     }
     curr->next = n;
 /*    printf(1, "currnext = %d\n", curr->next);*/
+	
   }
+  printf(1, "c:%d ", count + 1); 
+  count++;
 }
 
 void ll_print(){
@@ -41,5 +45,8 @@ void ll_coolj(){
     i += n->data;
     n = n->next;
   }
-  printf(1, "total = %d", i);
+  printf(1, "total = %d\n", i);
+}
+void ll_count() {
+  printf(1, "Count: %d\n", count); 
 }

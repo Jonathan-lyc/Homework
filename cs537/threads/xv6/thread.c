@@ -5,6 +5,10 @@
 #include "mmu.h"
 #include "proc.h"
 #include "thread.h"
+<<<<<<< HEAD
+=======
+#include "stat.h"
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a
 
 void
 lock_init(struct lock_t *lock)
@@ -56,9 +60,13 @@ int
 lock_holding(struct lock_t *lock)
 {
   return lock->locked;
+<<<<<<< HEAD
 }
 
 int
 thread_create(void *(*start_routine)(void*), void *arg) {
   return 0;
 }
+=======
+}
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a

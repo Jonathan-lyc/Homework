@@ -1,7 +1,13 @@
 00000000 .text
+<<<<<<< HEAD:cs537/threads/xv6/sh.sym
 00001398 .rodata
 00001498 .data
 000014c0 .bss
+=======
+00001340 .rodata
+00001440 .data
+00001460 .bss
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/sh.sym
 00000000 .comment
 00000000 .debug_aranges
 00000000 .debug_pubnames
@@ -17,7 +23,11 @@
 00000000 ulib.c
 00000000 printf.c
 00000f20 printint
+<<<<<<< HEAD:cs537/threads/xv6/sh.sym
 00001486 digits.910
+=======
+0000142e digits.910
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/sh.sym
 00000000 umalloc.c
 0000152c freep
 00001524 base
@@ -35,9 +45,13 @@
 000000b0 peek
 00000440 parseredirs
 00000130 gettoken
-00001250 malloc
+00001260 malloc
 00000f08 sleep
+<<<<<<< HEAD:cs537/threads/xv6/sh.sym
 00001498 whitespace
+=======
+00001440 whitespace
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/sh.sym
 000008e0 fork1
 00000000 nulterminate
 00000e88 pipe
@@ -51,7 +65,11 @@
 00000790 parseblock
 00000eb0 exec
 00000e80 wait
+<<<<<<< HEAD:cs537/threads/xv6/sh.sym
 0000149e symbols
+=======
+00001446 symbols
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/sh.sym
 00000e90 read
 00000520 parseexec
 00000ec8 unlink
@@ -59,7 +77,11 @@
 00000e70 fork
 00000f00 sbrk
 00000f10 uptime
+<<<<<<< HEAD:cs537/threads/xv6/sh.sym
 000014a8 __bss_start
+=======
+00001450 __bss_start
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/sh.sym
 00000cf0 memset
 00000b70 main
 00001350 lock_acquire
@@ -71,8 +93,13 @@
 00000320 pipecmd
 00000370 redircmd
 00000dc0 stat
+<<<<<<< HEAD:cs537/threads/xv6/sh.sym
 000014a8 _edata
 00001530 _end
+=======
+00001450 _edata
+000014d0 _end
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/sh.sym
 00000ed8 link
 00000e78 exit
 00000d50 atoi
@@ -84,4 +111,4 @@
 00000ee0 mkdir
 00000ea0 close
 000002d0 listcmd
-000011c0 free
+000011d0 free

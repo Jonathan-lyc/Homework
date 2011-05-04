@@ -1,6 +1,11 @@
 00000000 .text
+<<<<<<< HEAD:cs537/threads/xv6/rm.sym
 000007c7 .rodata
 0000080c .bss
+=======
+0000076e .rodata
+000007b4 .bss
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/rm.sym
 00000000 .comment
 00000000 .debug_aranges
 00000000 .debug_pubnames
@@ -15,18 +20,25 @@
 00000000 ulib.c
 00000000 printf.c
 00000350 printint
+<<<<<<< HEAD:cs537/threads/xv6/rm.sym
 000007fb digits.910
 00000000 umalloc.c
 00000814 freep
 0000080c base
 00000000 thread.c
+=======
+000007a2 digits.910
+00000000 umalloc.c
+000007bc freep
+000007b4 base
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/rm.sym
 00000080 strcpy
 000003f0 printf
 000001c0 memmove
 000002f0 mknod
 00000240 gets
 00000328 getpid
-00000680 malloc
+00000690 malloc
 00000338 sleep
 000002b8 pipe
 000002c8 write
@@ -40,7 +52,11 @@
 000002a0 fork
 00000330 sbrk
 00000340 uptime
+<<<<<<< HEAD:cs537/threads/xv6/rm.sym
 0000080c __bss_start
+=======
+000007b3 __bss_start
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/rm.sym
 00000120 memset
 00000000 main
 00000780 lock_acquire
@@ -50,8 +66,13 @@
 000000b0 strcmp
 00000320 dup
 000001f0 stat
+<<<<<<< HEAD:cs537/threads/xv6/rm.sym
 0000080c _edata
 00000818 _end
+=======
+000007b3 _edata
+000007c0 _end
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/rm.sym
 00000308 link
 000002a8 exit
 00000180 atoi
@@ -62,4 +83,4 @@
 000007c0 thread_create
 00000310 mkdir
 000002d0 close
-000005f0 free
+00000600 free

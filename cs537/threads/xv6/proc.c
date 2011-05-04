@@ -181,20 +181,35 @@ clone(void)
     np->state = UNUSED;
     return -1;
   }
+<<<<<<< HEAD
+=======
+//   cprintf("stack inside %d\n", stack[0]);
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a
 
   // Clear %eax so that clone returns 0 in the child.
   np->tf->eax = 0;
 
+<<<<<<< HEAD
 //   cprintf("pstack: %x\n", proc->pstack);
 // /*  cprintf("pstack2: %x\n", proc->pstack2);*/
 //   cprintf("esp: %x\n", proc->tf->esp);
   memmove(stack, proc->pstack - size + 1, size - 1);
 //   cprintf("shizzle: %x\n", proc->context->ebp);
+=======
+  //memmove(stack, proc->pstack - size, size);
+  char *s = (char *) proc->pstack - size;
+  char *d = (char *) stack;
+  for (i = 0; i < 4096; i++) {
+    *d++ = *s++;
+  }
+
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a
 /*  uint *j;
   uint k;
   for (j = (uint *)stack, k =0; k < size/10 - 1; j++, k++) {
     cprintf("%x\n" , *j);
   }*/
+<<<<<<< HEAD
 /*  cprintf("%x + 1000 - %x - ( %x - %x)\n", (uint)stack, (uint)proc->pstack, (uint)proc->pstack, (uint)proc->tf->esp);*/
 //   np->tf->esp = (uint)stack + PGSIZE - (uint)proc->pstack - ((uint)proc->pstack - (uint)proc->tf->esp);
   np->tf->esp = 0x9fbc;
@@ -204,6 +219,25 @@ clone(void)
 //   cprintf("esp: %x\n", np->tf->esp);
 /*  *(uint *)np->tf->esp = *(uint *)proc->tf->esp;*/
   
+=======
+
+  int offset = (uint)proc->pstack - (uint)proc->tf->esp;
+  cprintf("offset = %x, size = %x\n", offset, size);
+  cprintf("%x %x %x\n", proc->pstack, stack, proc->tf->esp);
+  np->tf->esp = (uint)stack + PGSIZE;
+  cprintf("PGSIZE:%x ALMOST NEW ESP:%x\n", PGSIZE, np->tf->esp);
+  np->tf->esp -= offset;
+  cprintf("PGSIZE:%x NEW ESP:%x\n", PGSIZE, np->tf->esp);
+
+  cprintf("Child esp points to: %x\n", *(uint *)np->tf->esp);
+  cprintf("Child esp + 4 points to: %x\n", *((uint *)np->tf->esp + 4));
+  cprintf("Child esp + 8 points to: %x\n", *((uint *)np->tf->esp + 8));
+  cprintf("Parent esp points to: %x\n", *(uint *)proc->tf->esp);
+  
+  
+//   cprintf("esp: %x\n", np->tf->esp);
+  
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a
 //   cprintf("pstack: %x\n", proc->pstack);
 //   cprintf("childstack: %x\n", stack);
 
@@ -502,4 +536,4 @@ procdump(void)
     }
     cprintf("\n");
   }
-} 
+}

@@ -1,6 +1,11 @@
 00000000 .text
+<<<<<<< HEAD:cs537/threads/xv6/zombie.sym
 00000777 .rodata
 00000790 .bss
+=======
+0000071e .rodata
+00000738 .bss
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/zombie.sym
 00000000 .comment
 00000000 .debug_aranges
 00000000 .debug_pubnames
@@ -15,18 +20,25 @@
 00000000 ulib.c
 00000000 printf.c
 00000300 printint
+<<<<<<< HEAD:cs537/threads/xv6/zombie.sym
 0000077e digits.910
 00000000 umalloc.c
 00000798 freep
 00000790 base
 00000000 thread.c
+=======
+00000725 digits.910
+00000000 umalloc.c
+00000740 freep
+00000738 base
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/zombie.sym
 00000030 strcpy
 000003a0 printf
 00000170 memmove
 000002a0 mknod
 000001f0 gets
 000002d8 getpid
-00000630 malloc
+00000640 malloc
 000002e8 sleep
 00000268 pipe
 00000278 write
@@ -40,7 +52,11 @@
 00000250 fork
 000002e0 sbrk
 000002f0 uptime
+<<<<<<< HEAD:cs537/threads/xv6/zombie.sym
 0000078f __bss_start
+=======
+00000736 __bss_start
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/zombie.sym
 000000d0 memset
 00000000 main
 00000730 lock_acquire
@@ -50,8 +66,13 @@
 00000060 strcmp
 000002d0 dup
 000001a0 stat
+<<<<<<< HEAD:cs537/threads/xv6/zombie.sym
 0000078f _edata
 0000079c _end
+=======
+00000736 _edata
+00000744 _end
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/zombie.sym
 000002b8 link
 00000258 exit
 00000130 atoi
@@ -62,4 +83,4 @@
 00000770 thread_create
 000002c0 mkdir
 00000280 close
-000005a0 free
+000005b0 free

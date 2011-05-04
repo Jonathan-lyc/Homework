@@ -1,6 +1,11 @@
 00000000 .text
+<<<<<<< HEAD:cs537/threads/xv6/stressfs.sym
 00000817 .rodata
 00000848 .bss
+=======
+000007be .rodata
+000007f0 .bss
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/stressfs.sym
 00000000 .comment
 00000000 .debug_aranges
 00000000 .debug_pubnames
@@ -15,18 +20,25 @@
 00000000 ulib.c
 00000000 printf.c
 000003a0 printint
+<<<<<<< HEAD:cs537/threads/xv6/stressfs.sym
 00000835 digits.910
 00000000 umalloc.c
 00000850 freep
 00000848 base
 00000000 thread.c
+=======
+000007dc digits.910
+00000000 umalloc.c
+000007f8 freep
+000007f0 base
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/stressfs.sym
 000000d0 strcpy
 00000440 printf
 00000210 memmove
 00000340 mknod
 00000290 gets
 00000378 getpid
-000006d0 malloc
+000006e0 malloc
 00000388 sleep
 00000308 pipe
 00000318 write
@@ -40,7 +52,11 @@
 000002f0 fork
 00000380 sbrk
 00000390 uptime
+<<<<<<< HEAD:cs537/threads/xv6/stressfs.sym
 00000846 __bss_start
+=======
+000007ed __bss_start
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/stressfs.sym
 00000170 memset
 00000000 main
 000007d0 lock_acquire
@@ -50,8 +66,13 @@
 00000100 strcmp
 00000370 dup
 00000240 stat
+<<<<<<< HEAD:cs537/threads/xv6/stressfs.sym
 00000846 _edata
 00000854 _end
+=======
+000007ed _edata
+000007fc _end
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/stressfs.sym
 00000358 link
 000002f8 exit
 000001d0 atoi
@@ -62,4 +83,4 @@
 00000810 thread_create
 00000360 mkdir
 00000320 close
-00000640 free
+00000650 free

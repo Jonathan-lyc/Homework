@@ -1,6 +1,11 @@
 00000000 .text
+<<<<<<< HEAD:cs537/threads/xv6/grep.sym
 00000a78 .rodata
 00000ae0 .bss
+=======
+00000a20 .rodata
+00000a80 .bss
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/grep.sym
 00000000 .comment
 00000000 .debug_aranges
 00000000 .debug_pubnames
@@ -15,7 +20,11 @@
 00000000 ulib.c
 00000000 printf.c
 00000600 printint
+<<<<<<< HEAD:cs537/threads/xv6/grep.sym
 00000ab5 digits.910
+=======
+00000a5d digits.910
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/grep.sym
 00000000 umalloc.c
 00000ae8 freep
 00000ae0 base
@@ -28,7 +37,7 @@
 000004f0 gets
 000005d8 getpid
 00000160 grep
-00000930 malloc
+00000940 malloc
 000005e8 sleep
 00000568 pipe
 00000578 write
@@ -42,7 +51,11 @@
 00000550 fork
 000005e0 sbrk
 000005f0 uptime
+<<<<<<< HEAD:cs537/threads/xv6/grep.sym
 00000ac6 __bss_start
+=======
+00000a6e __bss_start
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/grep.sym
 000003d0 memset
 00000260 main
 00000a30 lock_acquire
@@ -54,8 +67,13 @@
 000005d0 dup
 00000b00 buf
 000004a0 stat
+<<<<<<< HEAD:cs537/threads/xv6/grep.sym
 00000ac6 _edata
 00000f00 _end
+=======
+00000a6e _edata
+00000ea0 _end
+>>>>>>> d2fde116ec48de7cdd2c93c7ff852824130cc81a:cs537/kernel1/xv6/grep.sym
 00000100 match
 000005b8 link
 00000558 exit
@@ -67,4 +85,4 @@
 00000a70 thread_create
 000005c0 mkdir
 00000580 close
-000008a0 free
+000008b0 free
