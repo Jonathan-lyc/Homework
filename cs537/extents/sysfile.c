@@ -220,6 +220,7 @@ create(char *path, short type, short major, short minor)
     return 0;
   ilock(dp);
 
+  // See if file already exists
   if((ip = dirlookup(dp, name, &off)) != 0){
     iunlockput(dp);
     ilock(ip);
@@ -228,7 +229,8 @@ create(char *path, short type, short major, short minor)
     iunlockput(ip);
     return 0;
   }
-
+  
+  // Oh it doesn't? Let's make it.
   if((ip = ialloc(dp->dev, type)) == 0)
     panic("create: ialloc");
 
@@ -263,6 +265,8 @@ sys_open(void)
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
+
+  // Create/Get file
   if(omode & O_CREATE){
     if (omode & O_EXTENT) {
       if((ip = create(path, T_EXTENT, 0, 0)) == 0)

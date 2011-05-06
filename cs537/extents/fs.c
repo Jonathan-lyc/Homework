@@ -363,30 +363,30 @@ itrunc(struct inode *ip)
 
   //TODO: Add in for EXTENTS. Free every block from pointer to pointer + size, just like first half of code.
   if (ip->type == T_EXTENT) {
-	
+    return;
   }
   else {
-	for(i = 0; i < NDIRECT; i++){
-	  if(ip->addrs[i]){
-		bfree(ip->dev, ip->addrs[i]);
-		ip->addrs[i] = 0;
-	  }
-	}
+    for(i = 0; i < NDIRECT; i++){
+      if(ip->addrs[i]){
+      bfree(ip->dev, ip->addrs[i]);
+      ip->addrs[i] = 0;
+      }
+    }
 	
-	if(ip->addrs[NDIRECT]){
-	  bp = bread(ip->dev, ip->addrs[NDIRECT]);
-	  a = (uint*)bp->data;
-	  for(j = 0; j < NINDIRECT; j++){
-		if(a[j])
-		  bfree(ip->dev, a[j]);
-	  }
-	  brelse(bp);
-	  bfree(ip->dev, ip->addrs[NDIRECT]);
-	  ip->addrs[NDIRECT] = 0;
-	}
+    if(ip->addrs[NDIRECT]){
+      bp = bread(ip->dev, ip->addrs[NDIRECT]);
+      a = (uint*)bp->data;
+      for(j = 0; j < NINDIRECT; j++){
+      if(a[j])
+        bfree(ip->dev, a[j]);
+      }
+      brelse(bp);
+      bfree(ip->dev, ip->addrs[NDIRECT]);
+      ip->addrs[NDIRECT] = 0;
+    }
 
-	ip->size = 0;
-	iupdate(ip);
+    ip->size = 0;
+    iupdate(ip);
   }
 }
 
