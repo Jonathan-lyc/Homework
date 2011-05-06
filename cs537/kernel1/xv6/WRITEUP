@@ -1,0 +1,5 @@
+So, pretty much everything is in sysfile.c. 
+
+I added a sysfile.h so a function could be called from the syscall.c.
+
+Syscall.c looks pretty much the same, minus getcount()

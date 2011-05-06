@@ -9,5 +9,7 @@ struct stat {
   uint ino;    // Inode number on device
   short nlink; // Number of links to file
   uint size;   // Size of file in bytes
+  //Block addresses, not to be confused with the urine holding body part.
+  uint bladdrs[13]; //<- record address of every allocated block.
 };
 

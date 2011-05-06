@@ -7,3 +7,6 @@ read() write() open()
 sysfile.c create()
 
 For addrs: 32bit array, first 3 bytes for pointer, last byte for size. use shifts to make this work.
+Look for every instance where addrs[] is used, update if necessary. At least wrap in an if(ip->type != EXTENT){}
+
+Modify stat() syscall to return block address of file also.
