@@ -26,10 +26,10 @@
 00000000 exec.c
 00000000 file.c
 00000000 fs.c
-001010d0 iget
-00101190 readsb
-001011e0 balloc
-001012b0 bmap
+001010e0 iget
+001011a0 readsb
+001011f0 balloc
+001012c0 bmap
 001017c0 bfree
 00101cd0 namex
 00000000 ide.c
@@ -102,7 +102,7 @@
 001058ee vector185
 001021a0 ioapicinit
 001055cd vector115
-00100da0 fileread
+00100db0 fileread
 0010560c vector122
 00104c40 sys_sbrk
 0010bb00 ioapicid
@@ -144,7 +144,7 @@
 00105ac2 vector224
 00105333 vector41
 00100530 cprintf
-00100ea0 filedup
+00100eb0 filedup
 00107806 _binary_bootother_end
 00101e60 namei
 0010527f vector21
@@ -182,7 +182,7 @@
 0010586a vector174
 00105ba6 vector243
 00102540 cpunum
-00101050 fileinit
+00101060 fileinit
 001039b0 initlock
 00105642 vector128
 00105d30 copyout
@@ -199,7 +199,7 @@
 0010526d vector19
 001054fe vector92
 00105bb2 vector244
-00101070 stati
+00101080 stati
 001056d2 vector140
 00104c90 sys_kill
 00105357 vector45
@@ -247,7 +247,7 @@
 00105d00 uva2ka
 00105876 vector175
 001056f6 vector143
-00100ef0 filealloc
+00100f00 filealloc
 00102880 jmpkstack
 00103140 wakeup
 0010565a vector130
@@ -260,14 +260,14 @@
 001053de vector60
 00105291 vector23
 00105c50 vmenable
-001010a0 idup
+001010b0 idup
 00105b52 vector236
 00102440 kbdintr
 001045f0 sys_open
 00105b16 vector231
 00105414 vector66
 001052c7 vector29
-00101360 readi
+00101370 readi
 00105696 vector135
 00100790 consoleintr
 001030b0 kill
@@ -285,7 +285,7 @@
 00105996 vector199
 00105666 vector131
 00105c12 vector252
-00100cf0 filewrite
+00100d00 filewrite
 001051d0 vector0
 00103e80 argint
 001009a0 exec
@@ -306,7 +306,7 @@
 00103370 scheduler
 00101670 dirlookup
 0010597e vector197
-00100f70 fileclose
+00100f80 fileclose
 00105762 vector152
 00105ed0 kvmalloc
 00105b0a vector230
@@ -507,4 +507,4 @@
 00103a50 pushcli
 0010522f vector11
 00105244 vector14
-00100e50 filestat
+00100e60 filestat

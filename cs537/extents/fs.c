@@ -322,11 +322,31 @@ bmap(struct inode *ip, uint bn)
   uint addr, *a;
   struct buf *bp;
 
+  // Deal with extent based files
   if (ip->type == T_EXTENT) {
-    // Deal with extent based shizzle
+	int pair; // Pair that the requested block is in.
+	// Figure out block is, loop through all the pairs
+	int i;
+	for (i = 0; i < NDIRECT + 1; i++) {
+	   
+	}
+	if (pair == 0) {
+	  //alloc new pair
+	  //allocate a new block, coallesce if possible
+	}
+	
+	// Unpack pointer, size pair
+	int s, b; // size and block ptr pair
+	b = (ip->addrs[bn] >> SHIFT);
+	s = (ip->addrs[bn] & MASK);
+	
+	
+	
+	
     return 0;
   }
 
+  // Direct block
   if(bn < NDIRECT){
     if((addr = ip->addrs[bn]) == 0)
       ip->addrs[bn] = addr = balloc(ip->dev);
@@ -334,6 +354,7 @@ bmap(struct inode *ip, uint bn)
   }
   bn -= NDIRECT;
 
+  // Indirect block
   if(bn < NINDIRECT){
     // Load indirect block, allocating if necessary.
     if((addr = ip->addrs[NDIRECT]) == 0)
@@ -402,20 +423,24 @@ stati(struct inode *ip, struct stat *st)
 }
 
 // Read data from inode.
+// n = number of bytes to read
 int
 readi(struct inode *ip, char *dst, uint off, uint n)
 {
   uint tot, m;
   struct buf *bp;
 
+  // Device
   if(ip->type == T_DEV){
     if(ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].read)
       return -1;
     return devsw[ip->major].read(ip, dst, n);
   }
 
+  // Offset exceeds file, error.
   if(off > ip->size || off + n < off)
     return -1;
+  // Offset would create a file larger than max file size
   if(off + n > ip->size)
     n = ip->size - off;
 
@@ -429,23 +454,27 @@ readi(struct inode *ip, char *dst, uint off, uint n)
 }
 
 // Write data to inode.
+// n = number of bytes to write
 int
 writei(struct inode *ip, char *src, uint off, uint n)
 {
   uint tot, m;
   struct buf *bp;
 
+  // Device
   if(ip->type == T_DEV){
     if(ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].write)
       return -1;
     return devsw[ip->major].write(ip, src, n);
   }
-
+  // Offset exceeds file, error.
   if(off > ip->size || off + n < off)
     return -1;
+  // Offset would create a file larger than max file size
   if(off + n > MAXFILE*BSIZE)
     n = MAXFILE*BSIZE - off;
-
+  
+  // 
   for(tot=0; tot<n; tot+=m, off+=m, src+=m){
     bp = bread(ip->dev, bmap(ip, off/BSIZE));
     m = min(n - tot, BSIZE - off%BSIZE);

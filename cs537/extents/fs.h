@@ -49,3 +49,7 @@ struct dirent {
   char name[DIRSIZ];
 };
 
+// Extent based definitions.
+// Masking for packing ptr, size pairs into standard int
+#define MASK (0xff)
+#define SHIFT (8)
