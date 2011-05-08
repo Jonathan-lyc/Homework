@@ -7,6 +7,10 @@ struct proc;
 struct spinlock;
 struct stat;
 
+// DEBUG
+// 1: bmap
+#define DEBUG 0 
+
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);

@@ -327,31 +327,44 @@ bmap(struct inode *ip, uint bn)
 	// Figure out block is, loop through all the pairs
 	int i;
 	uint block = 0;
-	
 	for (i = 0; i < NDIRECT + 1; i++) {
 		// Unpack pointer, size pair
 		int b = (ip->addrs[bn] >> SHIFT); //first block pointer
 		int s = (ip->addrs[bn] & MASK); //size of extent
+		if (DEBUG == 1) {cprintf("b: %d s: %d\n", b, s);}
 		if (s == 0) { // Block not currently allocated
 			if (i == NDIRECT) { // Allocated all pairs, error. 
 			// Could go to indirect, if we really felt like implementing that..
-			// For best results: try to alloc block and see if it can be
-			// added to last pair, if not just free it up.
+				int addr = balloc(ip->dev);
+				b = (ip->addrs[NDIRECT] >> SHIFT); //first block pointer
+				s = (ip->addrs[NDIRECT] & MASK);
+				if (b + s == addr) { // Block adjancent to last pair
+					// Grow last extent
+					ip->addrs[NDIRECT] = (b << SHIFT) | (s + 1);
+				}
+				else {
+					panic("bmap: file exceeds maximum extents");
+				}
 			}
 			else { // Room to allocate a new pair/ 
 				int addr = balloc(ip->dev);
-				if (i == 0 && s == 0) { // First pair to be allocated
+				if (bn == 0 && s == 0) { // First pair to be allocated
 					ip->addrs[0] = (addr << SHIFT) | 1;
+					if (DEBUG == 1) {cprintf("ret alloc new pair\n");}
 					return addr;
 				}
 				else { // Not first block, room to add another pair
-					int addr = balloc(ip->dev);
+					// Get the previous b and s for comparison
+					b = (ip->addrs[bn - 1] >> SHIFT); //first block pointer
+					s = (ip->addrs[bn - 1] & MASK); //size of extent
+					if (DEBUG == 1) {cprintf("b: %d s: %d addr: %d\n", b, s, addr);}
 					if (b + s == addr) { // Block is adjacent to last block
 						// Coalesce into pair
 						ip->addrs[i] = (b << SHIFT) | (s + 1);
+						
 						return addr;
 					}
-					else { // Block no adjacent. New pair time!
+					else { // Block not adjacent. New pair time!
 						// Pack (new block addr, size = 1) pair, put into list
 						ip->addrs[i + 1] = (addr << SHIFT) | 1;
 						return addr;
