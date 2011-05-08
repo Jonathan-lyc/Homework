@@ -324,26 +324,48 @@ bmap(struct inode *ip, uint bn)
 
   // Deal with extent based files
   if (ip->type == T_EXTENT) {
-	int pair; // Pair that the requested block is in.
 	// Figure out block is, loop through all the pairs
 	int i;
+	uint block = 0;
+	
 	for (i = 0; i < NDIRECT + 1; i++) {
-	   
+		// Unpack pointer, size pair
+		int b = (ip->addrs[bn] >> SHIFT); //first block pointer
+		int s = (ip->addrs[bn] & MASK); //size of extent
+		if (s == 0) { // Block not currently allocated
+			if (i == NDIRECT) { // Allocated all pairs, error. 
+			// Could go to indirect, if we really felt like implementing that..
+			// For best results: try to alloc block and see if it can be
+			// added to last pair, if not just free it up.
+			}
+			else { // Room to allocate a new pair/ 
+				int addr = balloc(ip->dev);
+				if (i == 0 && s == 0) { // First pair to be allocated
+					ip->addrs[0] = (addr << SHIFT) | 1;
+					return addr;
+				}
+				else { // Not first block, room to add another pair
+					int addr = balloc(ip->dev);
+					if (b + s == addr) { // Block is adjacent to last block
+						// Coalesce into pair
+						ip->addrs[i] = (b << SHIFT) | (s + 1);
+						return addr;
+					}
+					else { // Block no adjacent. New pair time!
+						// Pack (new block addr, size = 1) pair, put into list
+						ip->addrs[i + 1] = (addr << SHIFT) | 1;
+						return addr;
+					}
+				}
+			}
+		}
+		if (bn < block + s) { // Requested block is in this pair
+			uint offset = bn - block;
+			return b + offset;
+		} else { // Check next pair
+			block = b + s;
+		}
 	}
-	if (pair == 0) {
-	  //alloc new pair
-	  //allocate a new block, coallesce if possible
-	}
-	
-	// Unpack pointer, size pair
-	int s, b; // size and block ptr pair
-	b = (ip->addrs[bn] >> SHIFT);
-	s = (ip->addrs[bn] & MASK);
-	
-	
-	
-	
-    return 0;
   }
 
   // Direct block
