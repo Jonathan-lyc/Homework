@@ -15,7 +15,7 @@ main (int argc, char* argv[]) {
 	printf(stdout, "stdout is the fd?\n");  
   }
   int i;
-  for (i = 0; i < 53; i++) {
+  for (i = 0; i < 54; i++) {
 	if(write(fd, "aaaaaaaaa\n", 10) != 10) {
 		printf(stdout, "error: write aa %d new file failed\n", i);
 		exit();
