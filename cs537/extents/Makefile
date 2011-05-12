@@ -28,7 +28,9 @@ OBJS = \
 	vm.o\
 
 UPROGS=\
-	_test\
+	_stat\
+	_coal\
+	_onefourty\
 	_cat\
 	_echo\
 	_forktest\

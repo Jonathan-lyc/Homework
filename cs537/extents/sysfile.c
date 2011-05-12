@@ -222,7 +222,7 @@ create(char *path, short type, short major, short minor)
 
   // See if file already exists
   if((ip = dirlookup(dp, name, &off)) != 0){
-	cprintf("File exists\n");
+/*	cprintf("File exists\n");*/
     iunlockput(dp);
     ilock(ip);
     if((type == T_FILE && ip->type == T_FILE) || (type == T_EXTENT && ip->type == T_EXTENT))
@@ -234,7 +234,7 @@ create(char *path, short type, short major, short minor)
   // Oh it doesn't? Let's make it.
   if((ip = ialloc(dp->dev, type)) == 0) //NCN
     panic("create: ialloc");
-  cprintf("File doesn't exist\n");
+/*  cprintf("File doesn't exist\n");*/
   ilock(ip);
   ip->major = major;
   ip->minor = minor;
