@@ -345,7 +345,7 @@ bmap(struct inode *ip, uint bn)
             panic("bmap: file exceeds maximum extents");
           }
         } else { // Room to allocate a new pair
-          int addr = balloc(ip->dev);
+          int addr = balloc(ip->dev); // Grab a new block
           if (bn == 0 && s == 0) { // First pair to be allocated
             ip->addrs[0] = (addr << SHIFT) | 1;
 /*            if (DEBUG == 1) {cprintf("ret alloc first pair\n");}*/
@@ -509,7 +509,7 @@ writei(struct inode *ip, char *src, uint off, uint n)
   
   // 
   for(tot=0; tot<n; tot+=m, off+=m, src+=m){
-    if (DEBUG == 1) {cprintf("Writing to bn %d\n", off/BSIZE);}
+    if (DEBUG==1){cprintf("Writing to bn %d\n", off/BSIZE);}
     bp = bread(ip->dev, bmap(ip, off/BSIZE));
     m = min(n - tot, BSIZE - off%BSIZE);
     memmove(bp->data + off%BSIZE, src, m);

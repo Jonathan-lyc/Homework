@@ -1,6 +1,6 @@
 00000000 .text
-00001338 .rodata
-00001438 .data
+00001340 .rodata
+00001440 .data
 00001460 .bss
 00000000 .comment
 00000000 .debug_aranges
@@ -17,7 +17,7 @@
 00000000 ulib.c
 00000000 printf.c
 00000f20 printint
-00001426 digits.908
+0000142e digits.908
 00000000 umalloc.c
 000014cc freep
 000014c4 base
@@ -34,9 +34,9 @@
 000000b0 peek
 00000440 parseredirs
 00000130 gettoken
-00001250 malloc
+00001260 malloc
 00000f08 sleep
-00001438 whitespace
+00001440 whitespace
 000008e0 fork1
 00000000 nulterminate
 00000e88 pipe
@@ -50,7 +50,7 @@
 00000790 parseblock
 00000eb0 exec
 00000e80 wait
-0000143e symbols
+00001446 symbols
 00000e90 read
 00000520 parseexec
 00000ec8 unlink
@@ -58,7 +58,7 @@
 00000e70 fork
 00000f00 sbrk
 00000f10 uptime
-00001448 __bss_start
+00001450 __bss_start
 00000cf0 memset
 00000b70 main
 00000c80 strcmp
@@ -66,7 +66,7 @@
 00000320 pipecmd
 00000370 redircmd
 00000dc0 stat
-00001448 _edata
+00001450 _edata
 000014d0 _end
 00000ed8 link
 00000e78 exit
@@ -77,4 +77,4 @@
 00000ee0 mkdir
 00000ea0 close
 000002d0 listcmd
-000011c0 free
+000011d0 free
