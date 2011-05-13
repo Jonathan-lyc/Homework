@@ -17,7 +17,8 @@ main (int argc, char* argv[]) {
   }
   int fd = open(argv[1], O_RDWR);
   if (fd < 0) {
-	printf(stdout, "FILE DOESN'T EXIST DUMMY!\n");
+	  printf(stdout, "FILE DOESN'T EXIST DUMMY!\n");
+    exit();
   }
   
   stat(argv[1], &st);

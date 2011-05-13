@@ -357,12 +357,12 @@ bmap(struct inode *ip, uint bn)
             if (DEBUG == 1) {cprintf("b: %d s: %d addr: %d\n", b, s, addr);}
             if (b + s == addr) { // Block is adjacent to last block
               // Coalesce into pair
-              ip->addrs[i] = (b << SHIFT) | (s + 1);
+              ip->addrs[i - 1] = (b << SHIFT) | (s + 1);
               if (DEBUG == 1) {cprintf("ret coalesce\n");}
               return addr;
             } else { // Block not adjacent. New pair time!
               // Pack (new block addr, size = 1) pair, put into list
-              ip->addrs[i + 1] = (addr << SHIFT) | 1;
+              ip->addrs[i] = (addr << SHIFT) | 1;
               if (DEBUG == 1) {cprintf("ret alloc new pair\n");}
               return addr;
             }
@@ -417,7 +417,18 @@ itrunc(struct inode *ip)
 
   //TODO: Add in for EXTENTS. Free every block from pointer to pointer + size, just like first half of code.
   if (ip->type == T_EXTENT) {
-    return;
+    int i;
+    for (i = 0; i < NDIRECT + 1; i++) {
+      // Unpack pointer, size pair
+      int b = (ip->addrs[i] >> SHIFT); //first block pointer
+      int s = (ip->addrs[i] & MASK); //size of extent
+      if (s != 0) {
+        int j;
+        for(j = 0; j < s; j++) {
+          bfree(ip->dev, b+j);
+        }
+      }
+    }
   }
   else {
     for(i = 0; i < NDIRECT; i++){

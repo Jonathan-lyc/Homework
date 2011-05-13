@@ -28,6 +28,9 @@ OBJS = \
 	vm.o\
 
 UPROGS=\
+	_delete\
+	_append\
+	_twofiles\
 	_stat\
 	_coal\
 	_onefourty\
