@@ -1,56 +1,51 @@
-#include "stat.h"
 #include "types.h"
-#include "file.h"
-#include "defs.h"
+#include "stat.h"
+#include "user.h"
 #include "fs.h"
 #include "fcntl.h"
 #include "syscall.h"
 #include "traps.h"
 
+int stdout = 1;
 
 int
 main (int argc, char* argv[]) {
+  struct stat st = st;
   if (argc != 2) {
-    cprintf( "FALSE! (CORRECT: stat filename)\n");
+    printf(stdout,"FALSE! (CORRECT: stat filename)\n");
     exit();
   }
-
-  char *path = argv[1];
-  struct inode *ip;
-  struct stat *sp;
-
-  if ((ip = namei(path)) == 0) {
-    cprintf( "Could not get inode, Sorry :\(\n");
-    exit();
+  int fd = open(argv[1], O_RDWR);
+  if (fd < 0) {
+	printf(stdout, "FILE DOESN'T EXIST DUMMY!\n");
   }
-
-  stati(ip, sp);
-
-  cprintf( "File type = ");
-  if (sp->type == T_DIR)
-    cprintf( "T_DIR\n");
-  else if (sp->type == T_FILE)
-    cprintf( "T_FILE\n");
-  else if (sp->type == T_DEV)
-    cprintf( "T_DEV\n");
-  else if (sp->type == T_EXTENT)
-    cprintf( "T_EXTENT\n");
+  
+  stat(argv[1], &st);
+  
+  printf(stdout, "File type = ");
+  if (st.type == T_DIR)
+    printf(stdout, "T_DIR\n");
+  else if (st.type == T_FILE)
+    printf(stdout, "T_FILE\n");
+  else if (st.type == T_DEV)
+    printf(stdout, "T_DEV\n");
+  else if (st.type == T_EXTENT)
+    printf(stdout, "T_EXTENT\n");
   else
-    cprintf( "OH NO!!! WHAT DID YOU DO?!?!\n");
+    printf(stdout, "OH NO!!! WHAT DID YOU DO?!?! TYPE = %d\n", st.type);
 
-//   cprintf( "Links = %d\n", sp->nlink);
-// 
-//   cprintf( "Size = %d\n", sp->size);
-// 
-//   cprintf( "Block Addresses:\n");
-//   int i;
-//   if (sp->type == T_EXTENT) {
-//     // I don't know what crazy shit has to be done here to get the addresses
-//   } else {
-//     for (i = 0; i < NDIRECT + 1; i++) {
-//       cprintf( "  Pointer %d's address = %d\n", i, sp->bladdrs[i]);
-//     }
-//   }
+  printf(stdout, "Links = %d\n", st.nlink);
 
+  printf(stdout, "Size = %d\n", st.size);
+
+  printf(stdout, "Block Addresses:\n");
+  int i;
+  if (st.type == T_EXTENT) {
+    // I don't know what crazy shit has to be done here to get the addresses
+  } else {
+    for (i = 0; i < NDIRECT + 1; i++) {
+      printf(stdout, "  Pointer %d's address = %d\n", i, st.bladdrs[i]);
+    }
+  }
   exit();
 }

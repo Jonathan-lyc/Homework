@@ -12,8 +12,8 @@ int
 main (int argc, char* argv[]) {
 //   int fd = open("output.txt", O_CREATE | O_RDWR);
   int fd = open("coal.txt", O_CREATE | O_RDWR | O_EXTENT);
-  if (fd == 1) {
-	printf(stdout, "stdout is the fd?\n");  
+  if (fd <= 1) {
+	printf(stdout, "file issues?\n");  
   }
   int i;
   printf(stdout, "starting coalesce test\n");
@@ -25,8 +25,12 @@ main (int argc, char* argv[]) {
   }
   struct stat st;
   fstat(fd, &st);
-  printf(stdout, "type: %d\n", st.type);
-  printf(stdout, "coalesce block test complete\n");
+  if (st.size != 520) {
+	printf(stdout, "File size different from expected\n");
+  }
+  else {
+	printf(stdout, "coalesce block test complete\n");
+  }
   close(fd);
   exit();
 }
