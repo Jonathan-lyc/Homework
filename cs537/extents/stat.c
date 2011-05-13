@@ -41,7 +41,11 @@ main (int argc, char* argv[]) {
   printf(stdout, "Block Addresses:\n");
   int i;
   if (st.type == T_EXTENT) {
-    // I don't know what crazy shit has to be done here to get the addresses
+    for (i = 0; i < NDIRECT + 1; i++) {
+	  int b = (st.bladdrs[i] >> SHIFT); //first block pointer
+	  int s = (st.bladdrs[i] & MASK);
+      printf(stdout, "  Pointer %d's address = %d with size = %d\n", i, b, s);
+    }
   } else {
     for (i = 0; i < NDIRECT + 1; i++) {
       printf(stdout, "  Pointer %d's address = %d\n", i, st.bladdrs[i]);

@@ -453,6 +453,10 @@ stati(struct inode *ip, struct stat *st)
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
+  int i;
+  for (i = 0; i < NDIRECT + 1; i++) {
+    st->bladdrs[i] = ip->addrs[i];
+  }
 }
 
 // Read data from inode.
