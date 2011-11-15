@@ -118,7 +118,7 @@ const Status BufMgr::allocBuf(int & frame)
         removeStatus = hashTable->remove(currptr->file, currptr->pageNo);
         if (removeStatus != OK) {
             // Not in spec???
-            return HASHTBLERROR;
+            return BUFFEREXCEEDED;
         }
         return OK;
     }
@@ -150,7 +150,7 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
     int frameNo = -1;    
     // First check whether the page is already in the buffer pool by invoking the 
     // lookup() method on the hashtable to get a frame number.
-    status = hashTable->lookup(file, PageNo, frameNo);
+    status = hashTable->lookup(file,PageNo,frameNo);
     if (status == OK)
     {
         //Page is in the buffer pool
@@ -187,6 +187,8 @@ const Status BufMgr::readPage(File* file, const int PageNo, Page*& page)
         }
         
     }
+    // catch all
+    return OK;
 }
 
 /*
@@ -215,6 +217,8 @@ const Status BufMgr::unPinPage(File* file, const int PageNo,
     else if (status == HASHNOTFOUND){
         return HASHNOTFOUND;
     }
+    // Catch all
+    return OK;
 }
 
 /*
@@ -231,9 +235,9 @@ error occurred.
 */
 const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page) 
 {
-    Status status = OK;
+//     Status status = OK;
     Status allocPageStatus = OK;
-    Status allocBufStatus = OK;
+//     Status allocBufStatus = OK;
     Status insertStatus = OK;
     // allocate an empty page in the specified file by invoking the file->allocatePage() method
     allocPageStatus = file->allocatePage(pageNo);
@@ -249,9 +253,9 @@ const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page)
     if (allocPageStatus == UNIXERR) {
         return UNIXERR;
     }
-    if (allocPageStatus == HASHTBLERROR) {
-        return HASHTBLERROR;
-    }
+//     if (allocPageStatus == HASHTBLERROR) {
+//         return HASHTBLERROR;
+//     }
     // an entry is inserted into the hash table
     insertStatus = hashTable->insert(file, pageNo, frameNo);
     if (insertStatus != OK) {
@@ -259,6 +263,7 @@ const Status BufMgr::allocPage(File* file, int& pageNo, Page*& page)
     }
     // Set() is invoked on the frame to set it up properly
     bufTable[frameNo].Set(file, pageNo);
+    page = &bufPool[frameNo];
     return OK;
 }
 

@@ -99,9 +99,10 @@ int main()
       CALL(bufMgr->unPinPage(file1, j[i], true));
     }
     cout <<"Test passed"<<endl<<endl;
-
+    
     cout << "Reading pages back..." << endl;
     for (i = 0; i < num; i++) {
+      
       CALL(bufMgr->readPage(file1, j[i], page));
       sprintf((char*)&cmp, "test.1 Page %d %7.1f", j[i], (float)j[i]);
       ASSERT(memcmp(page, &cmp, strlen((char*)&cmp)) == 0);
