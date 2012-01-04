@@ -1,0 +1,156 @@
+# Firewall
+firewall {
+	family inet {
+		# Filters traffic between Network 1 and the public network
+		filter network1-public {
+			# Deny all FTP connections on the FTP port
+			term ftp-denied {
+				from {
+					destination-port [ftp ftp-data];
+				}
+				then {
+					log;
+					reject;
+				}
+			}
+		}
+		# Filters traffic from the public network to Network 2
+		filter network2-public {
+			# All SSH connections should be allowed, as long as they're on the SSH port. 
+			term terminal-access {
+				from {
+					destination-port [ssh];
+				}
+				then accept;
+			}
+			# All TCP connections from Network 2 to the public network are allowed
+			term tcp-out-allowed {
+				from {
+					destination-address {
+						10.0.0.61;
+					}
+					protocol tcp;
+				}
+				then accept;
+			}
+			# All other connctions are denied.
+			term else-deny {
+				then {
+					log;
+					reject;
+				}
+			}
+		}
+		# Filters traffic between Network 1 and Network 2
+		filter network1-network2 {
+			# Allow TCP conections from hosts on Network 1 to the web server on Network 2
+			term web-server-incoming {
+				from {
+					source-address {
+						10.0.0.53;
+						10.0.0.57;
+					}
+					destination-address {
+						10.0.0.61;
+					}
+					protocol tcp;
+				}
+				then {
+					accept;
+				}
+			}
+			# Allow TCP connections from the web server on Network 2 to the hosts on Network 1 for serving content
+			term web-server-outgoing {
+				from {
+					source-address {
+						10.0.0.61;
+					}
+					destination-address {
+						10.0.0.53;
+						10.0.0.57;
+					}
+					protocol tcp;
+				}
+				then {
+					accept;
+				}
+			}
+			# Allow SSH between all hosts on Network 1 and Network 2
+			term ssh-allow {
+				from {
+					destination-port [ssh];
+				}
+				then {
+					accept;
+				}
+			}
+			# Block all other IP packets
+			term ip-block {
+				then {
+					log;
+					reject;
+				}
+			}
+		}
+	}
+}
+
+
+
+#Network1Router
+firewall {
+	family inet {
+		# Filters traffic between hosts on Network 1
+		filter network1-local {
+			# Allows SSH access between hosts on Network 1.
+			term terminal-access {
+				from {
+					protocol tcp;
+					port [ssh];
+				}
+				then accept;
+			}
+			# Denies telnet access between hosts on Network 1. Also denies telnet to outsiders.
+			term terminal-access-denied {
+				from {
+					protocol tcp;
+					port [telnet];
+				}
+				then {
+					log;
+					reject;
+				}
+			}
+		}
+	}
+}
+
+
+
+#Network2Router
+firewall {
+	family inet {
+		# Filters traffic between hosts on Network 2
+		filter network2-local {
+			# Allows SSH access between hosts on the Network 2
+			term terminal-access {
+				from {
+					protocol tcp;
+					port [ssh];
+				}
+				then accept;
+			}
+			# Denies telnet access between hosts on Network 2
+			term terminal-access-denied {
+				from {
+					protocol tcp;
+					port [telnet];
+				}
+				then {
+					log;
+					reject;
+				}
+			}
+		}
+	}
+}
