@@ -1,0 +1,12 @@
+Attack 1:
+We use the img trick to pull down an "image" which is actually the email script. We set the payload to be document.cookie (what we're looking for), and then set window.location to the users page to cause a redirect.
+
+Attack 2:
+We create a hidden form and a hidden iframe to prevent the user from noticing anything. Then we submit that form (targetting the iframe so that gets updated, and the user doesn't see the zoobar site at all), and then using the 
+redirect trick from Attack 1 to send them to the cs website.
+
+Attack 3:
+The vulnerability is between when the script gets the salt and when it checks the username and hashed password. The check for salt uses the quoted username, but the password check does not.
+So we first register our attack string as a new user (so the quoted version is found during the salt check), and then our attack string will be executed in username=$username, and prevent the password check. 
+We use a single quote to escape the string (allowed because they don't use quoted string), and then check for username = submitted_username, then end the query with a ";", and -- to comment out the password check.
+We could use 1=1;-- instead of username=submitted_username;--, but that would log us in as a random user.

@@ -1,3 +1,0 @@
-Attack 3:
-The vulnerability is between when the script gets the salt and when it checks the username and hashed password. The check for salt uses the quoted username, so we first register our attack string as a new user (so the quoted version
-is found during the salt check), and then our attack string will be executed in username=$username, and prevent the password check. 
