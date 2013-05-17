@@ -26,7 +26,7 @@ main(int argc, char *argv[]){
   }
   //Interactive mode
   if (argc == 1) {
-    int ret = 0;
+    int ret = 0;x
     while (ret == 0) {
       ret = prompt();
     }

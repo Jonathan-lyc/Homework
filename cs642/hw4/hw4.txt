@@ -1,0 +1,76 @@
+Problem 1
+
+1. Password is 145219.
+2. I wrote a Python script to iterate through every number from 1 to infinity 
+(in that order), and attempt the hashing algorithm. It is a brute force 
+method. I used subprocess to call the exact line from the homework PDF.
+
+crack(i):
+    # Run perl script through subprocess using i as password, ristenpart as
+    # username, and 134153169 as salt.
+    return hash
+
+i = 0
+while guess != hash:
+    guess = crack(i)
+    i += 0
+print guess
+
+3. It was a very easy thing to crack. I used on thread on my CPU and it only 
+took about half an hour. Using multiple threads or a GPU would cut that down
+dramatically. Max running time is 10^length of password. For example,
+the recovered password is 6 characters long. The worst case is doing every
+number to 999,999, which is about 10^6 iterations.
+
+To make it harder, you could choose an arbitrary (the larger the better) number,
+and hash it that many times. That would increase the time to crack linearly.
+You could also use different salt every time. If someone were to gain access to
+the passwords, they would have to crack each individually, instead of once for all,
+because of the same salt. You could also use something like bcrypt, which takes
+much longer to computer a hash, and therefore lowers the number of tries per second
+an attacker can do.
+
+Problem 2
+1. 
+badencrypt:
+The code takes in two keys, one for the encryption, and one for the HMAC.
+It creates a header and prepends it to the message.
+It then creates a MAC of the header + message and adds it to the end of the message.
+If the new plaintext is not evenly divisible by 16, it pads it with 0's.
+It grabs an initialization vector, and then encrypts the header + message + HMAC.
+It returns a string with the initialization vector as the first 16 characters, and 
+the encrypted message as the rest.
+
+baddecryt:
+The code takes in the encryption and HMAC keys from the keyfile.
+The ciphertext is passed in via argument 1. The initialization vector is the first 16 characters.
+A new cipher is created and used to decrypt the rest of the ciphertext (minus IV).
+The header is unpacked and checked in order, printing errors and halting if the header
+is malformed.
+The HMAC is recomputed over the header + plaintext. If the HMAC is not equal to the stored tag,
+an error is raised (too late!).
+The program prints "Message Received" if there have been no errors.
+
+2. The idea of the attack is to copy the text from the area the message is stored in, and
+paste it over the area where the message length is stored (they are both 4 bytes). Then,
+when the length is decrypted and is wrong, we will get a printout that is the original
+message. The hard part is that we are using 16 byte blocks, and the message and the 
+message length are in different blocks, therefore they would be decrypted differntly.
+I was not able to come up with a way around this.
+
+We know bits 63-71 are the hex encoded password and 16-32 is the hex encoded length field.
+
+3. To avoid this error, we need to check the HMAC tag after decryption first, and then 
+either print an error that the tag does not match, or continue checking the rest of the header,
+and never print anything but predefined messages.
+
+baddecryt:
+The code takes in the encryption and HMAC keys from the keyfile.
+The ciphertext is passed in via argument 1. The initialization vector is the first 16 characters.
+A new cipher is created and used to decrypt the rest of the ciphertext (minus IV).
+The header is unpacked.
+The HMAC is recomputed over the header + plaintext. If the HMAC is not equal to the stored tag,
+an error is raised.
+The header is checked in order, printing errors and halting if the header
+is malformed. The errors should never use data received, only generic ones.
+The program prints "Message Received" if there have been no errors.
